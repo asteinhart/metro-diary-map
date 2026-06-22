@@ -1,0 +1,65 @@
+/* ---------------------------------------------------------------------------
+   Global fonts & color tokens for the Metro Diary Map
+   Imported once in src/routes/+layout.svelte as `import "../global.css";`
+--------------------------------------------------------------------------- */
+
+:root {
+	/* Fonts */
+	--font-serif: Georgia, 'Times New Roman', Times, serif;
+	--font-sans:
+		-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+		sans-serif;
+
+	/* Surfaces */
+	--color-bg: #0b0b0b;
+	--color-panel: #111111;
+	--color-panel-border: #2a2a2a;
+	--color-input-bg: #1d1d1d;
+	--color-toggle-bg: #1d1d1d;
+
+	/* Text */
+	--color-text: #ffffff;
+	--color-text-muted: #9b9b9b;
+	--color-text-dim: #6a6a6a;
+
+	/* Accents */
+	--color-accent: #f5c518;
+	--color-marker: #f5c518;
+
+	/* Neighborhood filter pills */
+	--pill-green: #3f7d54;
+	--pill-orange: #c2552f;
+	--pill-yellow: #b9982a;
+	--pill-blue: #3a6ea5;
+
+	/* Layout */
+	--panel-radius: 6px;
+	--panel-pad: 18px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	background: var(--color-bg);
+	color: var(--color-text);
+	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-serif);
+	margin: 0;
+}
+
+a {
+	color: inherit;
+}
