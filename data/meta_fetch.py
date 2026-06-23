@@ -23,6 +23,19 @@ So we fetch the UNION and let you classify afterward. Each row carries provenanc
 `has_kicker_tag`, `title_has_phrase`, and a heuristic `is_meta_article` to support that.
 Expected total is ~3,000 (vs ~1,475 for kicker alone).
 
+KNOWN GAP -- ~May 2012 to Oct 2015 (the "City Room blog" era):
+The column had a third publishing model in between. The print weekly column ended
+~May 2012 (last one we catch: 2012-05-07), and the modern daily online column didn't
+launch until 2015-10-27. In between, Metropolitan Diary ran as posts on the City Room
+blog (cityroom.blogs.nytimes.com), which BOTH filters miss: those posts have
+kicker="City Room" (not the diary kicker) and a content headline (not "Metropolitan
+Diary") -- the only "Metropolitan Diary:" signal lives in the abstract. The Article
+Search API can't recover them reliably either: every field filter (abstract:, body:,
+lead_paragraph:) returns 0 for the phrase, and a free-text q="Metropolitan Diary" over
+the window surfaces only ~15 real entries (and misses known ones). So our data shows
+2012 cut off in May, 2013-2014 empty, and 2015 starting in late October. Recovering the
+blog era would require scraping the City Room archive directly, not the API.
+
 PAGINATION CAP: the API returns at most 1,000 results per query (100 pages x 10), so we
 chunk into date windows and paginate within each. Because the modern era is dense
 (~260/yr), a window can exceed the cap, so windows that do are split in half recursively
