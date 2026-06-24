@@ -22,6 +22,7 @@ Two layouts, picked by publication year:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
 
 import lxml.html
@@ -35,6 +36,20 @@ LEGACY_BEFORE_YEAR = 2015
 DEAR_DIARY_RE = re.compile(r"dear\s+diary\s*:?", re.IGNORECASE)
 # leading em-dash / en-dash / hyphen(s) (and any spaces) before an author name
 LEADING_DASH_RE = re.compile(r"^[\s—–\-]+")
+
+
+def entry_id(uri: str | None, author: str | None, title: str | None, body: str | None) -> str:
+    """Stable, content-based id for a single diary entry.
+
+    A `uri` identifies a whole Metropolitan Diary column (~4 reader stories), so
+    it is NOT unique per entry -- and neither is (uri, author), since most entries
+    carry no byline. Hash the entry's actual content instead, so every story gets
+    its own key. That key is what makes the downstream entities/geocode passes
+    addressable (and resumable) per entry rather than collapsing several stories
+    from the same column onto one row.
+    """
+    raw = "\x1f".join([uri or "", author or "", title or "", body or ""]).encode("utf-8")
+    return "e" + hashlib.sha1(raw).hexdigest()[:16]
 
 
 def _norm(s: str) -> str:
@@ -346,13 +361,27 @@ def cmd_parse(limit: int | None) -> None:
         .filter(pl.col("body_len") >= 20)
         # dedupe entries that recur across overlapping pages
         .unique(subset=["title", "body"], keep="first")
+        # a stable per-entry key, hashed from the entry's content (see entry_id):
+        # (uri, author) alone collides, since one column holds several stories and
+        # most have no byline.
+        .with_columns(
+            pl.struct("uri", "author", "title", "body")
+            .map_elements(
+                lambda s: entry_id(s["uri"], s["author"], s["title"], s["body"]),
+                return_dtype=pl.String,
+            )
+            .alias("entry_id")
+        )
         .sort("pub_date")
     )
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out.write_parquet(ENTRIES_PARQUET)
 
+    n_dup_ids = out.height - out["entry_id"].n_unique()
     print(f"pages parsed: {df.height - missing}  (missing cache: {missing})")
     print(f"entries:      {out.height}")
+    if n_dup_ids:
+        print(f"  WARNING: {n_dup_ids} duplicate entry_id(s) -- entries share content")
     print(f"  with author:  {int(out['author'].is_not_null().sum())}")
     print(f"  with title:   {int(out['title'].is_not_null().sum())}")
     print(f"  empty body:   {int((out['body_len'] == 0).sum())}")

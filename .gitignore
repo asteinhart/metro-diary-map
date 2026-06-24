@@ -3,3 +3,9 @@
 .env
 __pycache__/
 .vscode/
+
+# Chrome debugging profile (holds your NYT login) and cached article HTML
+data/chrome-profile/
+data/output/html_cache/
+
+*/extract.py

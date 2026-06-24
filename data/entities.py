@@ -20,8 +20,8 @@ a clean record we can drop straight into a column.
 LM Studio exposes an OpenAI-compatible server (default http://localhost:1234/v1)
 that answers synchronously -- there's no async batch job like the Anthropic API,
 so this is a single streaming pass over the entries rather than submit/poll/collect.
-Each entry becomes one chat completion, keyed by a stable hash of (uri, author) --
-the same key the final dataset uses.
+Each entry becomes one chat completion, keyed by its `entry_id` (a stable
+content hash assigned in parse.py) -- the same key the final dataset uses.
 
     uv run data/entities.py                 # extract all entries -> output/diary_entities.parquet
     uv run data/entities.py --dry-run       # preview the prompt for row 0, call nothing
@@ -36,7 +36,7 @@ output next to each entry's web_url/author/title/body so the results are easy to
 eyeball. It never touches the main diary_entities.parquet. Tune --per-year and --seed.
 
 The run is resumable: rows already present (and error-free) in
-output/diary_entities.parquet are skipped, and results are written out in batches
+output/diary_entities.parquet are skipped (matched by entry_id), and results are written out in batches
 (every --batch-size completions, default 25), so an interrupted run picks up where
 it left off and never re-extracts an entry that already exists. Calibrate the
 prompt first:
@@ -51,7 +51,6 @@ LMSTUDIO_MODEL (default: whatever model LM Studio currently has loaded).
 from __future__ import annotations
 
 import argparse
-import hashlib
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -507,16 +506,11 @@ def message_json(message) -> str:
 
 
 # --- keys + client ------------------------------------------------------------
-
-
-def row_id(uri: str, author: str | None) -> str:
-    """Stable, filename-safe id for a row -- a hash of (uri, author).
-
-    The same hash recomputed on a later run maps each result back to its row,
-    which is what makes the pass resumable regardless of ordering.
-    """
-    raw = f"{uri}\x1f{author or ''}".encode("utf-8")
-    return "e" + hashlib.sha1(raw).hexdigest()[:16]
+#
+# Each row is keyed by its `entry_id` -- a stable content hash assigned in
+# parse.py. We carry that column straight through rather than recomputing a key
+# here: (uri, author) is NOT unique per entry (one column holds several stories,
+# most without a byline), so hashing it would collapse distinct stories together.
 
 
 def entry_text(row: dict) -> str:
@@ -598,10 +592,12 @@ def load_entries(limit: int | None) -> pl.DataFrame:
     if not ENTRIES_PARQUET.exists():
         raise SystemExit(f"missing {ENTRIES_PARQUET}; run `parse.py` first")
     # web_url/pub_date/pub_year ride along for --test's quality-review output; the
-    # main run only touches uri/author/title/body.
+    # main run only touches entry_id/uri/author/title/body.
     df = (
         pl.read_parquet(ENTRIES_PARQUET)
-        .select("uri", "web_url", "author", "title", "body", "pub_date", "pub_year")
+        .select(
+            "entry_id", "uri", "web_url", "author", "title", "body", "pub_date", "pub_year"
+        )
         .sort("pub_year", descending=True)
     )
     if limit:
@@ -610,15 +606,22 @@ def load_entries(limit: int | None) -> pl.DataFrame:
 
 
 def load_existing() -> dict[str, dict]:
-    """Prior results keyed by row_id, so we can merge new rows into them."""
+    """Prior results keyed by entry_id, so we can merge new rows into them.
+
+    A parquet written before entry_id existed was keyed (and deduped) on the old
+    colliding (uri, author) hash, so we can't trust it: return {} to re-extract
+    everything under the per-entry key.
+    """
     if not ENTITIES_PARQUET.exists():
         return {}
     df = pl.read_parquet(ENTITIES_PARQUET)
-    return {row_id(r["uri"], r["author"]): r for r in df.iter_rows(named=True)}
+    if "entry_id" not in df.columns:
+        return {}
+    return {r["entry_id"]: r for r in df.iter_rows(named=True)}
 
 
 def already_done_ids(existing: dict[str, dict]) -> set[str]:
-    """row_ids that already succeeded *under the current schema* (skip these).
+    """entry_ids that already succeeded *under the current schema* (skip these).
 
     "Done" requires an error-free row that also carries the borough fields. Rows
     written before the borough column lack it, so they fall out of this set and
@@ -635,6 +638,7 @@ def write_results(records: dict[str, dict]) -> pl.DataFrame:
     out = pl.DataFrame(
         list(records.values()),
         schema={
+            "entry_id": pl.String,
             "uri": pl.String,
             "author": pl.String,
             "title": pl.String,
@@ -665,7 +669,7 @@ def cmd_run(limit: int | None, dry_run: bool, workers: int, batch_size: int) -> 
     # Skip anything already extracted under the current schema; we only call the
     # model for the rows that remain.
     pending = [
-        r for r in df.iter_rows(named=True) if row_id(r["uri"], r["author"]) not in done
+        r for r in df.iter_rows(named=True) if r["entry_id"] not in done
     ]
     print(
         f"{df.height} entries; {df.height - len(pending)} already done (skipped); "
@@ -704,7 +708,12 @@ def cmd_run(limit: int | None, dry_run: bool, workers: int, batch_size: int) -> 
     completed = 0
 
     def task(row: dict) -> dict:
-        meta = {"uri": row["uri"], "author": row["author"], "title": row["title"]}
+        meta = {
+            "entry_id": row["entry_id"],
+            "uri": row["uri"],
+            "author": row["author"],
+            "title": row["title"],
+        }
         return extract_one(client, model, meta, entry_text(row))
 
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
@@ -713,7 +722,7 @@ def cmd_run(limit: int | None, dry_run: bool, workers: int, batch_size: int) -> 
         for fut in as_completed(futures):
             row = futures[fut]
             rec = fut.result()
-            rid = row_id(row["uri"], row["author"])
+            rid = row["entry_id"]
             with lock:
                 records[rid] = rec
                 completed += 1
@@ -749,10 +758,9 @@ def cmd_run(limit: int | None, dry_run: bool, workers: int, batch_size: int) -> 
 # entry's web_url/author/title/body alongside the model's output so the results
 # are easy to eyeball.
 
-# Review-friendly column order for the test output. uri rides along (the same
-# stable key the main dataset uses) so the test sample can be fed straight into
-# geocode.py, which joins on uri. web_url/body sit last so the verdict columns
-# read first.
+# Review-friendly column order for the test output. entry_id/uri ride along (the
+# same per-entry key the main dataset uses) so the test sample can be fed straight
+# into geocode.py. web_url/body sit last so the verdict columns read first.
 TEST_COLUMNS = [
     "pub_year",
     "pub_date",
@@ -767,6 +775,7 @@ TEST_COLUMNS = [
     "specific_location_mentioned",
     "specific_locations",
     "error",
+    "entry_id",
     "uri",
     "web_url",
     "body",
@@ -832,7 +841,12 @@ def cmd_test(per_year: int, workers: int, seed: int, dry_run: bool) -> None:
     print(f"using model '{model}' at {BASE_URL} ({workers} worker(s))\n")
 
     def task(row: dict) -> dict:
-        meta = {"uri": row["uri"], "author": row["author"], "title": row["title"]}
+        meta = {
+            "entry_id": row["entry_id"],
+            "uri": row["uri"],
+            "author": row["author"],
+            "title": row["title"],
+        }
         rec = extract_one(client, model, meta, entry_text(row))
         # carry the context columns so the output is reviewable on its own
         rec["web_url"] = row["web_url"]

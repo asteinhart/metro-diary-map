@@ -551,6 +551,7 @@ def cmd_run(input_path: Path, limit: int | None, dry_run: bool) -> None:
         if raw:
             entries.append(
                 {
+                    "entry_id": r["entry_id"],
                     "uri": r["uri"],
                     "author": r["author"],
                     "title": r["title"],
@@ -622,6 +623,7 @@ def cmd_run(input_path: Path, limit: int | None, dry_run: bool) -> None:
     entries_df = pl.DataFrame(
         [
             {
+                "entry_id": e["entry_id"],
                 "uri": e["uri"],
                 "author": e["author"],
                 "title": e["title"],
@@ -633,7 +635,7 @@ def cmd_run(input_path: Path, limit: int | None, dry_run: bool) -> None:
     out = (
         entries_df.join(cache_df, on="query_norm", how="left")
         .drop("query_norm")
-        .sort("uri", "author")
+        .sort("entry_id")
     )
     write_results(out)
 
