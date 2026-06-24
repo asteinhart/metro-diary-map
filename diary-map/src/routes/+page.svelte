@@ -1,5 +1,6 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
+	import { base } from '$app/paths';
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import STYLE_URL from './toner_style.json';
@@ -8,36 +9,197 @@
 	const CENTER = [-73.97, 40.758];
 	const ZOOM = 11.5;
 
-	// Placeholder neighborhood filters — colors map to the pill tokens in global.css
-	const filters = [
-		{ name: 'Upper West Side', color: 'var(--pill-green)' },
-		{ name: 'East Village', color: 'var(--pill-yellow)' },
-		{ name: 'Harlem', color: 'var(--pill-orange)' },
-		{ name: 'SoHo', color: 'var(--pill-blue)' },
-		{ name: 'Chelsea', color: 'var(--pill-green)' }
+	// The three placements process.py emits — each its own GeoJSON of the same entries,
+	// differing only in *where* the dot lands. Switching views swaps the points source.
+	const VIEWS = [
+		{ id: 'specific', label: 'Specific', file: `${base}/data/locations.geojson` },
+		{ id: 'subway', label: 'Subway', file: `${base}/data/subway.geojson` },
+		{ id: 'borough', label: 'Borough', file: `${base}/data/areas.geojson` }
 	];
 
-	// Placeholder diary points across Manhattan
-	const points = {
-		type: 'FeatureCollection',
-		features: [
-			{ coords: [-73.9855, 40.758], title: 'Times Square' },
-			{ coords: [-73.9665, 40.7812], title: 'Central Park' },
-			{ coords: [-74.0027, 40.7336], title: 'Greenwich Village' },
-			{ coords: [-73.9626, 40.7736], title: 'Upper East Side' },
-			{ coords: [-74.0089, 40.7075], title: 'Financial District' },
-			{ coords: [-73.9465, 40.8116], title: 'Harlem' }
-		].map((p) => ({
-			type: 'Feature',
-			geometry: { type: 'Point', coordinates: p.coords },
-			properties: { title: p.title }
-		}))
+	const VIEW_DESC = {
+		specific: 'Dropped at the exact place each diary names.',
+		subway: 'Placed along the subway line each diary mentions.',
+		borough: 'Scattered through the borough each diary names.'
 	};
+
+	const EMPTY = { type: 'FeatureCollection', features: [] };
 
 	let mapEl;
 	let map;
-	let activeFilter = $state(null);
-	let activeView = $state('Blocks');
+	let activeView = $state('specific');
+	let loading = $state(true);
+	let count = $state(0);
+	let total = $state(0);
+	// debug control: hide geocoded dots below this confidence (null confidence always shows)
+	let minConfidence = $state(0);
+	// year range — bounds are learned from the data the first time a view loads
+	let yearFloor = $state(1976);
+	let yearCeil = $state(2026);
+	let yearLo = $state(1976);
+	let yearHi = $state(2026);
+	let yearInit = false;
+
+	const filtered = $derived(
+		minConfidence > 0 || yearLo > yearFloor || yearHi < yearCeil
+	);
+	const countLabel = $derived(
+		loading
+			? 'Loading…'
+			: filtered
+				? `${count.toLocaleString()} of ${total.toLocaleString()} shown`
+				: `${total.toLocaleString()} entries`
+	);
+
+	// caches so toggling a view (or re-hovering) never re-fetches
+	const viewCache = {}; // view id -> FeatureCollection
+	let bodies = {}; // entry_id -> body text (loaded once, looked up on hover)
+
+	async function loadView(id) {
+		if (!viewCache[id]) {
+			const view = VIEWS.find((v) => v.id === id);
+			viewCache[id] = await fetch(view.file).then((r) => r.json());
+		}
+		return viewCache[id];
+	}
+
+	let loadToken = 0;
+	async function showView(id) {
+		activeView = id;
+		loading = true;
+		const token = ++loadToken;
+		const data = await loadView(id);
+		if (token !== loadToken) return; // a newer click superseded this one
+		map.getSource('diary-points')?.setData(data);
+		setLayerVisible('subway-lines', id === 'subway');
+		setLayerVisible('borough-outline', id === 'borough');
+		total = data.features.length;
+		initYearBounds(data);
+		applyFilters();
+		loading = false;
+	}
+
+	function setLayerVisible(layerId, visible) {
+		if (map.getLayer(layerId)) {
+			map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+		}
+	}
+
+	// --- map filters (year range + confidence debug) -------------------------------
+	function applyFilters() {
+		if (!map) return;
+		// keep points within the year range whose geocode confidence clears the threshold;
+		// points with no confidence (subway/borough/neighborhood) coalesce to 1 and always show
+		const filter = [
+			'all',
+			['>=', ['coalesce', ['get', 'confidence'], 1], minConfidence],
+			['>=', ['coalesce', ['get', 'pub_year'], 0], yearLo],
+			['<=', ['coalesce', ['get', 'pub_year'], 9999], yearHi]
+		];
+		if (map.getLayer('diary-points-dot')) map.setFilter('diary-points-dot', filter);
+		if (map.getLayer('diary-points-glow')) map.setFilter('diary-points-glow', filter);
+		const data = viewCache[activeView];
+		count = data
+			? data.features.filter((f) => {
+					const c = f.properties.confidence ?? 1;
+					const y = f.properties.pub_year ?? 0;
+					return c >= minConfidence && y >= yearLo && y <= yearHi;
+				}).length
+			: 0;
+	}
+
+	function initYearBounds(data) {
+		if (yearInit) return;
+		const years = data.features.map((f) => f.properties.pub_year).filter((y) => y != null);
+		if (years.length) {
+			yearFloor = yearLo = Math.min(...years);
+			yearCeil = yearHi = Math.max(...years);
+		}
+		yearInit = true;
+	}
+
+	// ---- hover popup (stays open while the cursor is over the popup, so the body
+	//      can be scrolled and the link clicked) -----------------------------------
+	let currentId = null;
+	let closeTimer;
+
+	function buildPopupContent(props) {
+		const wrap = document.createElement('div');
+		wrap.className = 'diary-popup';
+
+		const title = document.createElement('h3');
+		title.className = 'dp-title';
+		title.textContent = props.title || 'Untitled entry';
+		wrap.appendChild(title);
+
+		const meta = [props.author && `By ${props.author}`, props.pub_year]
+			.filter(Boolean)
+			.join(' · ');
+		if (meta) {
+			const p = document.createElement('p');
+			p.className = 'dp-meta';
+			p.textContent = meta;
+			wrap.appendChild(p);
+		}
+
+		// where this dot was actually placed — the specific spot, subway line, or borough
+		// the entry resolved to, depending on the active view
+		if (props.place_label) {
+			const place = document.createElement('p');
+			place.className = 'dp-place';
+			place.innerHTML =
+				'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.3-6-10a6 6 0 1112 0c0 4.7-6 10-6 10z" fill="none" stroke="currentColor" stroke-width="1.6" /><circle cx="12" cy="11" r="2.2" fill="currentColor" /></svg>';
+			const label = document.createElement('span');
+			label.textContent = props.place_label;
+			place.appendChild(label);
+			wrap.appendChild(place);
+		}
+
+		if (props.web_url) {
+			const link = document.createElement('a');
+			link.className = 'dp-link';
+			link.href = props.web_url;
+			link.target = '_blank';
+			link.rel = 'noopener noreferrer';
+			link.textContent = 'Read in The Times ›';
+			wrap.appendChild(link);
+		}
+
+		const body = document.createElement('div');
+		body.className = 'dp-body';
+		body.textContent = bodies[props.entry_id] ?? 'Loading…';
+		// keep wheel events on the body from zooming the map underneath
+		body.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
+		wrap.appendChild(body);
+
+		return wrap;
+	}
+
+	function openPopup(popup, feature) {
+		cancelClose();
+		popup.setLngLat(feature.geometry.coordinates).setDOMContent(buildPopupContent(feature.properties));
+		if (!popup.isOpen()) popup.addTo(map);
+		const node = popup.getElement();
+		if (node && !node.dataset.hoverWired) {
+			node.dataset.hoverWired = '1';
+			node.addEventListener('mouseenter', cancelClose);
+			node.addEventListener('mouseleave', scheduleClose);
+		}
+	}
+
+	function scheduleClose() {
+		clearTimeout(closeTimer);
+		closeTimer = setTimeout(() => {
+			popup?.remove();
+			currentId = null;
+		}, 220);
+	}
+
+	function cancelClose() {
+		clearTimeout(closeTimer);
+	}
+
+	let popup;
 
 	onMount(() => {
 		map = new maplibregl.Map({
@@ -50,54 +212,93 @@
 
 		map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
 
-		map.on('load', () => {
-			map.addSource('diary-points', { type: 'geojson', data: points });
+		map.on('load', async () => {
+			// contextual basemap layers — loaded once, shown only for their view
+			const [subwayLines, boroughs] = await Promise.all([
+				fetch(`${base}/data/subway_lines.geojson`).then((r) => r.json()),
+				fetch(`${base}/data/boroughs.geojson`).then((r) => r.json())
+			]);
 
+			map.addSource('subway-lines', { type: 'geojson', data: subwayLines });
+			map.addLayer({
+				id: 'subway-lines',
+				type: 'line',
+				source: 'subway-lines',
+				layout: { visibility: 'none', 'line-cap': 'round', 'line-join': 'round' },
+				paint: {
+					'line-color': '#6f6f6f',
+					'line-width': ['interpolate', ['linear'], ['zoom'], 10, 0.8, 14, 2],
+					'line-opacity': 0.7
+				}
+			});
+
+			map.addSource('boroughs', { type: 'geojson', data: boroughs });
+			map.addLayer({
+				id: 'borough-outline',
+				type: 'line',
+				source: 'boroughs',
+				layout: { visibility: 'none' },
+				paint: { 'line-color': '#5a5a5a', 'line-width': 1, 'line-opacity': 0.8 }
+			});
+
+			// the diary points — white dots with a soft glow
+			map.addSource('diary-points', { type: 'geojson', data: EMPTY });
 			map.addLayer({
 				id: 'diary-points-glow',
 				type: 'circle',
 				source: 'diary-points',
 				paint: {
-					'circle-radius': 12,
-					'circle-color': '#f5c518',
-					'circle-opacity': 0.18
+					'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 14, 16, 16, 22],
+					'circle-color': '#ffffff',
+					'circle-opacity': 0.1,
+					'circle-blur': 0.6
 				}
 			});
-
 			map.addLayer({
 				id: 'diary-points-dot',
 				type: 'circle',
 				source: 'diary-points',
 				paint: {
-					'circle-radius': 5,
-					'circle-color': '#f5c518',
-					'circle-stroke-width': 1.5,
-					'circle-stroke-color': '#0b0b0b'
+					'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2.2, 13, 3.5, 16, 6],
+					'circle-color': '#ffffff',
+					'circle-opacity': 0.92,
+					'circle-stroke-width': 0.75,
+					'circle-stroke-color': 'rgba(0, 0, 0, 0.55)'
 				}
 			});
 
-			const popup = new maplibregl.Popup({
+			// body text lives in its own file; fetch once and look up on hover
+			fetch(`${base}/data/entries.json`)
+				.then((r) => r.json())
+				.then((b) => (bodies = b));
+
+			popup = new maplibregl.Popup({
 				closeButton: false,
 				closeOnClick: false,
-				offset: 10
+				maxWidth: '340px',
+				offset: 12
 			});
+			popup.on('close', () => (currentId = null));
 
-			map.on('mouseenter', 'diary-points-dot', (e) => {
+			map.on('mousemove', 'diary-points-dot', (e) => {
 				map.getCanvas().style.cursor = 'pointer';
+				cancelClose();
 				const f = e.features[0];
-				popup
-					.setLngLat(f.geometry.coordinates)
-					.setHTML(`<strong>${f.properties.title}</strong>`)
-					.addTo(map);
+				if (f.properties.entry_id === currentId) return;
+				currentId = f.properties.entry_id;
+				openPopup(popup, f);
 			});
 			map.on('mouseleave', 'diary-points-dot', () => {
 				map.getCanvas().style.cursor = '';
-				popup.remove();
+				scheduleClose();
 			});
+
+			await showView(activeView);
 		});
 	});
 
 	onDestroy(() => {
+		clearTimeout(closeTimer);
 		map?.remove();
 	});
 </script>
@@ -112,48 +313,66 @@
 			<p class="date">June 22, 2026</p>
 		</header>
 
-		<div class="search">
-			<svg viewBox="0 0 24 24" class="search-icon" aria-hidden="true">
-				<path
-					d="M21 21l-4.3-4.3M11 19a8 8 0 110-16 8 8 0 010 16z"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
+		<div class="views">
+			{#each VIEWS as v}
+				<button class="view" class:active={activeView === v.id} onclick={() => showView(v.id)}>
+					{v.label}
+				</button>
+			{/each}
+		</div>
+		<p class="view-desc">{VIEW_DESC[activeView]}</p>
+		<p class="view-count">{countLabel}</p>
+
+		<div class="year">
+			<label class="range-label">
+				Year <span class="range-val">{yearLo}&ndash;{yearHi}</span>
+			</label>
+			<div class="range-pair">
+				<input
+					type="range"
+					aria-label="Earliest year"
+					min={yearFloor}
+					max={yearCeil}
+					step="1"
+					value={yearLo}
+					oninput={(e) => {
+						yearLo = Math.min(+e.currentTarget.value, yearHi);
+						applyFilters();
+					}}
 				/>
-			</svg>
-			<input type="text" placeholder="Find a neighborhood or address" />
+				<input
+					type="range"
+					aria-label="Latest year"
+					min={yearFloor}
+					max={yearCeil}
+					step="1"
+					value={yearHi}
+					oninput={(e) => {
+						yearHi = Math.max(+e.currentTarget.value, yearLo);
+						applyFilters();
+					}}
+				/>
+			</div>
 		</div>
 
-		<div class="filters">
-			{#each filters as f}
-				<button
-					class="pill"
-					class:active={activeFilter === f.name}
-					style="--pill-bg: {f.color}"
-					onclick={() => (activeFilter = activeFilter === f.name ? null : f.name)}
-				>
-					{f.name}
-				</button>
-			{/each}
+		<div class="debug">
+			<label class="range-label" for="conf">
+				Min confidence <span class="range-val">{minConfidence.toFixed(2)}</span>
+			</label>
+			<input
+				id="conf"
+				type="range"
+				min="0"
+				max="1"
+				step="0.01"
+				value={minConfidence}
+				oninput={(e) => {
+					minConfidence = +e.currentTarget.value;
+					applyFilters();
+				}}
+			/>
+			<p class="debug-note">Debug: hides geocoded points below this confidence.</p>
 		</div>
-
-		<div class="toggles">
-			{#each ['Blocks', 'Borders'] as v}
-				<button class="toggle" class:active={activeView === v} onclick={() => (activeView = v)}>
-					{v}
-				</button>
-			{/each}
-		</div>
-		<div class="toggles">
-			{#each ['Stats', 'Comments'] as v}
-				<button class="toggle" class:active={activeView === v} onclick={() => (activeView = v)}>
-					{v}
-				</button>
-			{/each}
-		</div>
-
-		<a class="add-link" href="#add">Add your neighborhood &rsaquo;</a>
 	</aside>
 </div>
 
@@ -205,82 +424,13 @@
 		color: var(--color-text-muted);
 	}
 
-	.search {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		margin-top: 16px;
-		padding: 9px 11px;
-		background: var(--color-input-bg);
-		border: 1px solid var(--color-panel-border);
-		border-radius: 4px;
-	}
-
-	.search-icon {
-		width: 16px;
-		height: 16px;
-		flex: none;
-		color: var(--color-text-dim);
-	}
-
-	.search input {
-		flex: 1;
-		min-width: 0;
-		background: none;
-		border: none;
-		outline: none;
-		color: var(--color-text);
-		font-family: var(--font-sans);
-		font-size: 0.85rem;
-	}
-
-	.search input::placeholder {
-		color: var(--color-text-dim);
-	}
-
-	.filters {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-		margin-top: 12px;
-	}
-
-	.pill {
-		border: none;
-		border-radius: 3px;
-		padding: 4px 9px;
-		font-family: var(--font-sans);
-		font-size: 0.76rem;
-		font-weight: 600;
-		color: #fff;
-		background: var(--pill-bg, var(--pill-green));
-		cursor: pointer;
-		opacity: 0.85;
-		transition:
-			opacity 0.12s ease,
-			box-shadow 0.12s ease;
-	}
-
-	.pill:hover {
-		opacity: 1;
-	}
-
-	.pill.active {
-		opacity: 1;
-		box-shadow: 0 0 0 2px var(--color-text);
-	}
-
-	.toggles {
+	.views {
 		display: flex;
 		gap: 6px;
-		margin-top: 8px;
-	}
-
-	.toggles:first-of-type {
 		margin-top: 16px;
 	}
 
-	.toggle {
+	.view {
 		flex: 1;
 		padding: 8px 0;
 		border: none;
@@ -296,28 +446,74 @@
 			color 0.12s ease;
 	}
 
-	.toggle:hover {
+	.view:hover {
 		color: var(--color-text);
 	}
 
-	.toggle.active {
+	.view.active {
 		background: #ffffff;
 		color: #000;
 	}
 
-	.add-link {
-		display: block;
-		margin-top: 16px;
-		font-size: 0.8rem;
+	.view-desc {
+		margin: 10px 0 0;
+		font-size: 0.78rem;
+		line-height: 1.35;
 		color: var(--color-text-muted);
-		text-decoration: none;
 	}
 
-	.add-link:hover {
+	.view-count {
+		margin: 4px 0 0;
+		font-size: 0.74rem;
+		color: var(--color-text-dim);
+	}
+
+	.year {
+		margin-top: 16px;
+	}
+
+	.debug {
+		margin-top: 16px;
+		padding-top: 14px;
+		border-top: 1px solid var(--color-panel-border);
+	}
+
+	.range-label {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: var(--color-text-muted);
+	}
+
+	.range-val {
 		color: var(--color-text);
+		font-variant-numeric: tabular-nums;
 	}
 
-	/* ---- Mobile: panel spans the top, filters scroll horizontally ---- */
+	.range-pair {
+		display: grid;
+		gap: 2px;
+		margin-top: 8px;
+	}
+
+	input[type='range'] {
+		width: 100%;
+		accent-color: var(--color-accent);
+		cursor: pointer;
+	}
+
+	.debug input[type='range'] {
+		margin-top: 8px;
+	}
+
+	.debug-note {
+		margin: 6px 0 0;
+		font-size: 0.72rem;
+		color: var(--color-text-dim);
+	}
+
+	/* ---- Mobile: panel spans the top ---- */
 	@media (max-width: 640px) {
 		.panel {
 			top: 0;
@@ -339,22 +535,6 @@
 		.byline,
 		.date {
 			display: none;
-		}
-
-		.filters {
-			flex-wrap: nowrap;
-			overflow-x: auto;
-			-webkit-overflow-scrolling: touch;
-			scrollbar-width: none;
-		}
-
-		.filters::-webkit-scrollbar {
-			display: none;
-		}
-
-		.pill {
-			flex: none;
-			white-space: nowrap;
 		}
 	}
 </style>

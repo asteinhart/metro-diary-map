@@ -63,3 +63,104 @@ h3 {
 a {
 	color: inherit;
 }
+
+/* ---------------------------------------------------------------------------
+   Hover popup — rendered by MapLibre outside the component DOM, so styled here.
+   Selectors are deliberately over-qualified so they outrank maplibre-gl.css
+   (which the bundle loads after this file).
+--------------------------------------------------------------------------- */
+.maplibregl-popup .maplibregl-popup-content {
+	background: var(--color-panel);
+	color: var(--color-text);
+	border: 1px solid var(--color-panel-border);
+	border-radius: 6px;
+	padding: 12px 14px;
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+	font-family: var(--font-sans);
+}
+
+/* tint the little pointer triangle to match the panel */
+.maplibregl-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+	border-bottom-color: var(--color-panel);
+}
+.maplibregl-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+	border-top-color: var(--color-panel);
+}
+.maplibregl-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+	border-right-color: var(--color-panel);
+}
+.maplibregl-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+	border-left-color: var(--color-panel);
+}
+
+.diary-popup {
+	width: 300px;
+	max-width: 100%;
+}
+
+.diary-popup .dp-title {
+	font-family: var(--font-serif);
+	font-size: 1rem;
+	line-height: 1.2;
+	font-weight: 700;
+	color: var(--color-text);
+}
+
+.diary-popup .dp-meta {
+	margin: 4px 0 0;
+	font-size: 0.76rem;
+	color: var(--color-text-muted);
+}
+
+.diary-popup .dp-place {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	margin: 6px 0 0;
+	font-size: 0.78rem;
+	color: var(--color-text);
+}
+
+.diary-popup .dp-place svg {
+	width: 13px;
+	height: 13px;
+	flex: none;
+	color: var(--color-accent);
+}
+
+.diary-popup .dp-link {
+	display: inline-block;
+	margin: 8px 0 0;
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: var(--color-accent);
+	text-decoration: none;
+}
+
+.diary-popup .dp-link:hover {
+	text-decoration: underline;
+}
+
+.diary-popup .dp-body {
+	margin-top: 10px;
+	max-height: 200px;
+	overflow-y: auto;
+	white-space: pre-wrap;
+	font-family: var(--font-serif);
+	font-size: 0.85rem;
+	line-height: 1.5;
+	color: var(--color-text);
+	padding-right: 6px;
+}
+
+.diary-popup .dp-body::-webkit-scrollbar {
+	width: 7px;
+}
+.diary-popup .dp-body::-webkit-scrollbar-thumb {
+	background: var(--color-panel-border);
+	border-radius: 4px;
+}

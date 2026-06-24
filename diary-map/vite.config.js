@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 
@@ -11,10 +11,18 @@ export default defineConfig({
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
 
-			// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-			// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-			// See https://svelte.dev/docs/kit/adapters for more information about adapters.
-			adapter: adapter()
+			// Static export for GitHub Pages. `fallback` serves the SPA shell for any
+			// path GitHub Pages can't match. See https://svelte.dev/docs/kit/adapter-static#GitHub-Pages
+			adapter: adapter({
+				fallback: '404.html'
+			}),
+
+			// On GitHub Pages the site is served from /<repo>/, so everything is prefixed
+			// with that base. CI sets BASE_PATH to '/metro-diary-map'; `dev` and local
+			// builds fall back to '' (served from the root).
+			paths: {
+				base: process.argv.includes('dev') ? '' : (process.env.BASE_PATH ?? '')
+			}
 		})
 	]
 });
