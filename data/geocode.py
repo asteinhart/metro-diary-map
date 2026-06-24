@@ -150,6 +150,82 @@ _BARE_STREET_RE = re.compile(
 )
 _HOUSE_NO_RE = re.compile(r"^\s*\d+[A-Za-z]?\s+\S")  # leading house number => address
 
+# --- "is this side of an A-and-B split actually a street?" --------------------
+# The intersection regex above fires on any "and"/"&"/"at", so a named place like
+# "Rose Center for Earth and Space" or "Gotham Bar and Grill" splits into two halves
+# and gets (wrongly) routed to the intersection geocoder. We only call it an
+# intersection when *both* halves look like streets, otherwise it's a plain place.
+#
+# Street-type suffixes that can end a single cross-street name. Broader than
+# _STREET_WORD: the point-like suffixes are allowed here because "Waverly Place" or
+# "Astor Place" are real cross streets, even though they aren't bare linear streets.
+_SIDE_SUFFIX = (
+    r"(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Broadway|Parkway|Pkwy"
+    r"|Drive|Dr|Lane|Ln|Place|Pl|Terrace|Ter|Court|Ct|Square|Plaza|Circle"
+    r"|Highway|Hwy|Slip|Walk|Row|Way)"
+)
+# A side that is *just* a street: optional "the"/direction, one name token or a
+# number/ordinal, a street suffix, and an optional trailing direction ("Park Avenue
+# South"). Multi-word noise ("Starbucks on 110th Street") and trailing clauses
+# ("13th Street branch of Citibank") deliberately fail to match.
+_STREET_SIDE_RE = re.compile(
+    rf"^(?:the\s+)?"
+    rf"(?:(?:East|West|North|South|E|W|N|S)\.?\s+)?"
+    rf"(?:\d{{1,3}}(?:st|nd|rd|th|d)?"
+    rf"|First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth|Eleventh|Twelfth"
+    rf"|[A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)?)"
+    rf"\s+{_SIDE_SUFFIX}(?:\s+(?:North|South|East|West))?\.?$",
+    re.IGNORECASE,
+)
+# A bare numbered cross street with the suffix dropped ("59th", "23d", "West 74th").
+_BARE_ORDINAL_RE = re.compile(
+    r"^(?:the\s+)?(?:(?:East|West|North|South|E|W|N|S)\.?\s+)?\d{1,3}(?:st|nd|rd|th|d)?$",
+    re.IGNORECASE,
+)
+# "Avenue A".."Avenue D" in the East Village (the suffix word leads the name here).
+_AVENUE_LETTER_RE = re.compile(r"^Avenue\s+[A-D]$", re.IGNORECASE)
+# A shared plural suffix covers both halves at once: "Mulberry and Bleecker Streets",
+# "Flatbush and Nostrand Avenues" -> test each half as "<name> Street"/"<name> Avenue".
+_PLURAL_SUFFIX_RE = re.compile(
+    r"^(.*?)\s+(Streets|Sts|Avenues|Aves|Roads|Boulevards|Blvds|Places|Drives|Lanes)\.?$",
+    re.IGNORECASE,
+)
+_PLURAL_SINGULAR = {
+    "streets": "Street", "sts": "St", "avenues": "Avenue", "aves": "Ave",
+    "roads": "Road", "boulevards": "Boulevard", "blvds": "Blvd",
+    "places": "Place", "drives": "Drive", "lanes": "Lane",
+}
+# NYC thoroughfares that commonly appear with no suffix word ("Amsterdam and 104th
+# Street", "Lexington and 59th", "Franklin and Vesey"). Normalized (lowercased) keys.
+KNOWN_BARE_STREETS = {
+    "broadway", "amsterdam", "columbus", "lexington", "madison", "park",
+    "lenox", "riverside", "york", "west end", "east end", "central park west",
+    "franklin", "vesey", "bowery", "canal", "avenue of the americas",
+}
+
+
+def _looks_like_street(side: str) -> bool:
+    """Does one side of an A-and-B split read as a single street, not a place name?"""
+    s = side.strip(" .,")
+    if not s:
+        return False
+    if _STREET_SIDE_RE.match(s) or _BARE_ORDINAL_RE.match(s) or _AVENUE_LETTER_RE.match(s):
+        return True
+    return normalize(s) in KNOWN_BARE_STREETS
+
+
+def _is_intersection(s1: str, s2: str) -> bool:
+    """Both halves read as streets -- directly, or sharing a trailing plural suffix."""
+    if _looks_like_street(s1) and _looks_like_street(s2):
+        return True
+    pm = _PLURAL_SUFFIX_RE.match(s2.strip())  # "A and B Streets" -> "A Street", "B Street"
+    if pm:
+        suffix = _PLURAL_SINGULAR[pm.group(2).lower()]
+        return _looks_like_street(f"{s1} {suffix}") and _looks_like_street(
+            f"{pm.group(1)} {suffix}"
+        )
+    return False
+
 
 def pick_raw_query(locations: list[str] | None) -> str | None:
     """The single location string to geocode: the entry's first specific_location."""
@@ -185,7 +261,10 @@ def classify(q: str) -> str:
         return "station"
     if _BETWEEN_RE.match(q) or _OFF_NEAR_RE.match(q):
         return "relational"
-    if _INTERSECTION_RE.match(q) and not _HOUSE_NO_RE.match(q):
+    m = _INTERSECTION_RE.match(q)
+    # Only an intersection when both halves read as streets -- otherwise the "and"/"at"
+    # belongs to a place name ("Rose Center for Earth and Space") and it routes as a place.
+    if m and not _HOUSE_NO_RE.match(q) and _is_intersection(m.group(1), m.group(2)):
         return "intersection"
     if _BARE_STREET_RE.match(q):
         return "bare_street"
