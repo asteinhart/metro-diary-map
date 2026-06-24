@@ -599,8 +599,10 @@ def load_entries(limit: int | None) -> pl.DataFrame:
         raise SystemExit(f"missing {ENTRIES_PARQUET}; run `parse.py` first")
     # web_url/pub_date/pub_year ride along for --test's quality-review output; the
     # main run only touches uri/author/title/body.
-    df = pl.read_parquet(ENTRIES_PARQUET).select(
-        "uri", "web_url", "author", "title", "body", "pub_date", "pub_year"
+    df = (
+        pl.read_parquet(ENTRIES_PARQUET)
+        .select("uri", "web_url", "author", "title", "body", "pub_date", "pub_year")
+        .sort("pub_year", descending=True)
     )
     if limit:
         df = df.head(limit)
