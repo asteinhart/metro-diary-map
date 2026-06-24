@@ -3,7 +3,7 @@
 	import { base } from '$app/paths';
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
-	import STYLE_URL from './toner_style.json';
+	import STYLE_URL from '../../static/toner_style.json';
 
 	// Manhattan-ish center
 	const CENTER = [-73.97, 40.758];
@@ -40,9 +40,7 @@
 	let yearHi = $state(2026);
 	let yearInit = false;
 
-	const filtered = $derived(
-		minConfidence > 0 || yearLo > yearFloor || yearHi < yearCeil
-	);
+	const filtered = $derived(minConfidence > 0 || yearLo > yearFloor || yearHi < yearCeil);
 	const countLabel = $derived(
 		loading
 			? 'Loading…'
@@ -132,9 +130,7 @@
 		title.textContent = props.title || 'Untitled entry';
 		wrap.appendChild(title);
 
-		const meta = [props.author && `By ${props.author}`, props.pub_year]
-			.filter(Boolean)
-			.join(' · ');
+		const meta = [props.author && `By ${props.author}`, props.pub_year].filter(Boolean).join(' · ');
 		if (meta) {
 			const p = document.createElement('p');
 			p.className = 'dp-meta';
@@ -177,7 +173,9 @@
 
 	function openPopup(popup, feature) {
 		cancelClose();
-		popup.setLngLat(feature.geometry.coordinates).setDOMContent(buildPopupContent(feature.properties));
+		popup
+			.setLngLat(feature.geometry.coordinates)
+			.setDOMContent(buildPopupContent(feature.properties));
 		if (!popup.isOpen()) popup.addTo(map);
 		const node = popup.getElement();
 		if (node && !node.dataset.hoverWired) {
