@@ -16,7 +16,10 @@ No single geocoder covers NYC diary prose, so we classify each string and route 
         the city's authoritative intersection geocoder. Neither GeoSearch nor Nominatim
         resolves "A and B" syntax, so this is the only good free option -- it needs a
         free API key (register at https://geoservice.planning.nyc.gov/, then put it in
-        the repo-root .env as GEOSERVICE_KEY).
+        the repo-root .env as GEOSERVICE_KEY). Each side is canonicalized to the full
+        street name Geosupport requires ("96th" -> "96 Street", "Park" -> "Park Avenue",
+        "Bleecker and Perry Streets" -> "Bleecker Street" / "Perry Street"), and the
+        lookup falls through every borough so a missing/wrong neighborhood still resolves.
   * relational ("40th Street between Park and Lexington", "Spring Street off West Broadway")
         -> reduced to an intersection (the street + its first cross street) and sent to
         Geosupport too.
@@ -24,8 +27,13 @@ No single geocoder covers NYC diary prose, so we classify each string and route 
         first (authoritative for NYC addresses and its venue layer -- parks, institutions),
         then Nominatim/OSM as a fallback, which is far better at small businesses and
         restaurants that GeoSearch's address-directory data misses ("Wo Hop", "Macy's").
-  * transit station ("Spring Street station") -> the station words are stripped and the
-        name is geocoded as a place, with "subway station" appended for the Nominatim try.
+        When the place name itself won't resolve but carries its own location ("Petco at
+        86th Street and Lexington Avenue"), the trailing "at/on/in <street>" clause is
+        geocoded instead and the point flagged low_confidence (the block, not the door).
+  * transit station ("Spring Street station") -> division/line qualifiers are stripped
+        ("96th Street West Side IRT station" -> "96th Street"); if the core is itself an
+        intersection it routes to Geosupport, otherwise the core is geocoded as a place
+        trying the query variants Nominatim accepts ("<core> station", then bare "<core>").
   * bare street with no number ("Amsterdam Avenue") -> has no single point, so we still
         place it (an arbitrary point on the street) but tag it low_confidence so the map
         layer can decide whether to show it.
@@ -202,6 +210,12 @@ KNOWN_BARE_STREETS = {
     "lenox", "riverside", "york", "west end", "east end", "central park west",
     "franklin", "vesey", "bowery", "canal", "avenue of the americas",
 }
+# Numbered avenues written as words ("53rd and Fifth" -> Fifth Avenue). Bare, each
+# reads as a cross street in an intersection and expands to "<word> Avenue" below.
+_WORD_AVENUES = {
+    "first", "second", "third", "fourth", "fifth", "sixth", "seventh",
+    "eighth", "ninth", "tenth", "eleventh", "twelfth",
+}
 
 
 def _looks_like_street(side: str) -> bool:
@@ -211,7 +225,8 @@ def _looks_like_street(side: str) -> bool:
         return False
     if _STREET_SIDE_RE.match(s) or _BARE_ORDINAL_RE.match(s) or _AVENUE_LETTER_RE.match(s):
         return True
-    return normalize(s) in KNOWN_BARE_STREETS
+    n = normalize(s)
+    return n in KNOWN_BARE_STREETS or n in _WORD_AVENUES
 
 
 def _is_intersection(s1: str, s2: str) -> bool:
@@ -294,9 +309,94 @@ def _street(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip(" .,")
 
 
+# --- street canonicalization for Geosupport intersection lookups --------------
+# Geosupport's Function 2 wants a full street name: bare ordinals ("96th") and bare
+# thoroughfare names ("Lexington", "Park") return nothing, but "96 Street" and
+# "Lexington Avenue" resolve. So before an intersection lookup we expand each side.
+
+# bare thoroughfare name (normalized) -> the suffix Geosupport needs
+_AVENUE_SUFFIX = {
+    "lexington", "park", "madison", "amsterdam", "columbus", "york",
+    "west end", "east end", "lenox", "convent", "mcdonald", "flatbush",
+    "nostrand",
+}
+_DRIVE_SUFFIX = {"riverside"}
+# a leading direction + number, suffix dropped ("96th", "West 74th", "23d")
+_GEO_ORDINAL_RE = re.compile(
+    r"^(?:(East|West|North|South|E|W|N|S)\.?\s+)?(\d{1,3})(?:st|nd|rd|th|d)?$",
+    re.IGNORECASE,
+)
+
+
+def _apply_suffix(name: str, suffix: str) -> str:
+    """Attach a shared plural suffix to one side: '18th' + 'Avenue' -> '18 Avenue'."""
+    name = name.strip(" .,")
+    m = _GEO_ORDINAL_RE.match(name)
+    if m:
+        direction = f"{m.group(1)} " if m.group(1) else ""
+        return f"{direction}{m.group(2)} {suffix}"
+    return f"{name} {suffix}"
+
+
+def _canonical_street(s: str) -> str:
+    """Expand a parsed street into the full form Geosupport's intersection lookup needs."""
+    s = re.sub(r"^the\s+", "", s.strip(" .,"), flags=re.IGNORECASE)
+    n = normalize(s)
+    if n in _WORD_AVENUES:
+        return f"{s} Avenue"  # "Fifth" -> "Fifth Avenue"
+    m = _GEO_ORDINAL_RE.match(s)
+    if m:
+        direction = f"{m.group(1)} " if m.group(1) else ""
+        return f"{direction}{m.group(2)} Street"  # "96th" -> "96 Street"
+    if n in _AVENUE_SUFFIX:
+        return f"{s} Avenue"
+    if n in _DRIVE_SUFFIX:
+        return f"{s} Drive"
+    if n.startswith("avenue of the americas"):
+        return "Avenue of the Americas"
+    return s
+
+
+def geo_intersection_streets(q: str) -> tuple[str, str] | None:
+    """Parsed + canonicalized street pair ready for a Geosupport intersection lookup.
+
+    Handles a shared plural suffix ("Bleecker and Perry Streets" -> "Bleecker Street",
+    "Perry Street") and otherwise canonicalizes each side ("96th and Park" ->
+    "96 Street", "Park Avenue").
+    """
+    streets = parse_streets(q)
+    if not streets:
+        return None
+    s1, s2 = streets
+    pm = _PLURAL_SUFFIX_RE.match(s2.strip())  # "Bleecker and Perry Streets"
+    if pm:
+        suffix = _PLURAL_SINGULAR[pm.group(2).lower()]
+        return _apply_suffix(s1, suffix), _apply_suffix(pm.group(1), suffix)
+    return _canonical_street(s1), _canonical_street(s2)
+
+
 def strip_station(q: str) -> str:
     """A station name as a plain place: '34th Street R train station' -> '34th Street'."""
     return _STATION_RE.sub("", q).strip(" -,") or q
+
+
+# Transit division / line qualifiers ("BMT", "IRT", "West Side", "Metro-North",
+# "No. 6", "Q train", "of the Lexington Avenue subway") that aren't part of the
+# station's place name. Stripping them leaves the core street or intersection, which
+# the geocoders can find ("96th Street West Side IRT station" -> "96th Street").
+_STATION_QUALIFIER_RE = re.compile(
+    r"\b(?:BMT|IND|IRT|PATH|Metro[- ]North|West Side|East Side|"
+    r"No\.?\s*\d+|[A-Z]\s+train|of the .*?subway)\b",
+    re.IGNORECASE,
+)
+
+
+def station_core(q: str) -> str:
+    """A station string reduced to its core place/intersection name."""
+    s = strip_station(q)
+    s = _STATION_QUALIFIER_RE.sub("", s)
+    s = re.sub(r"\s+", " ", s).strip(" -,.")
+    return s or q
 
 
 def infer_borough(neighborhoods: list[str] | None) -> int | None:
@@ -507,6 +607,27 @@ def geoservice_intersection(s1: str, s2: str, borough: int) -> dict | None:
     }
 
 
+def geoservice_try(s1: str, s2: str, neighborhoods: list[str] | None) -> dict | None:
+    """Geosupport intersection, trying the entry's inferred borough first then the rest.
+
+    Function 2 needs a borough and only returns a hit when the two streets actually
+    cross in it, so an entry whose neighborhood is missing or points to the wrong
+    borough still resolves by falling through the remaining boroughs.
+    """
+    order: list[int] = []
+    inferred = infer_borough(neighborhoods)
+    if inferred:
+        order.append(inferred)
+    for b in (1, 3, 4, 2, 5):  # Manhattan, Brooklyn, Queens, Bronx, Staten Island
+        if b not in order:
+            order.append(b)
+    for b in order:
+        r = geoservice_intersection(s1, s2, b)
+        if r:
+            return r
+    return None
+
+
 # --- routing ------------------------------------------------------------------
 
 UNRESOLVED = {
@@ -516,6 +637,23 @@ UNRESOLVED = {
     "label": None,
     "confidence": None,
 }
+
+# Many places carry their own location ("Barnes & Noble at 66th Street and Broadway",
+# "Apple store on Fifth Avenue"). When the place name itself won't geocode, the
+# trailing "at/on/in <street or intersection>" still pins the block.
+_LOCATION_TAIL_RE = re.compile(r"\b(?:at|on|in)\s+(.+)$", re.IGNORECASE)
+_GEOCODABLE_TAIL_RE = re.compile(
+    r"(?:street|avenue|broadway|\bst\b|\bave\b|plaza|square|\band\b|\d)", re.IGNORECASE
+)
+
+
+def location_tail(q: str) -> str | None:
+    """A trailing 'at/on/in <street or intersection>' phrase worth geocoding on its own."""
+    m = _LOCATION_TAIL_RE.search(q)
+    if not m:
+        return None
+    tail = m.group(1).strip(" .,")
+    return tail if _GEOCODABLE_TAIL_RE.search(tail) else None
 
 
 def geocode_query(raw: str, neighborhoods: list[str] | None) -> dict:
@@ -527,10 +665,9 @@ def geocode_query(raw: str, neighborhoods: list[str] | None) -> dict:
     match_query = q  # the place-name we expect the matched label to name
 
     if category in ("intersection", "relational"):
-        streets = parse_streets(q)
+        streets = geo_intersection_streets(q)
         if streets:
-            borough = infer_borough(neighborhoods) or BOROUGH_CODE["Manhattan"]
-            result = geoservice_intersection(streets[0], streets[1], borough)
+            result = geoservice_try(streets[0], streets[1], neighborhoods)
             # relational strings still name a real street -> a place lookup is a sane backup
             if result is None and category == "relational":
                 match_query = streets[0]
@@ -539,12 +676,36 @@ def geocode_query(raw: str, neighborhoods: list[str] | None) -> dict:
                 )
                 low_confidence = True
     elif category == "station":
-        match_query = strip_station(q)
-        result = geosearch(match_query) or nominatim(
-            f"{match_query} subway station, New York, NY"
-        )
+        core = match_query = station_core(q)
+        # some "stations" are really an intersection ("96th Street and Broadway station")
+        if classify(core) == "intersection":
+            streets = geo_intersection_streets(core)
+            if streets:
+                result = geoservice_try(streets[0], streets[1], neighborhoods)
+        # otherwise the core is a street/place name -- try the variants Nominatim accepts
+        # ("subway station" suffixed breaks it; "<core> station" or "<core>" works)
+        for attempt in (
+            lambda: geosearch(core),
+            lambda: nominatim(f"{q}, New York, NY"),
+            lambda: nominatim(f"{core} station, New York, NY"),
+            lambda: nominatim(f"{core}, New York, NY"),
+        ):
+            if result:
+                break
+            result = attempt()
     else:  # place / bare_street -- GeoSearch first, then Nominatim for POIs it misses
         result = geosearch(q) or nominatim(f"{q}, New York, NY")
+        # nothing matched the place name itself -> fall back to an embedded location
+        # ("Petco at 86th Street and Lexington Avenue"), placed at the block, low-confidence
+        if result is None:
+            tail = location_tail(q)
+            if tail:
+                sub = geocode_query(tail, neighborhoods)
+                if sub["status"] == "ok":
+                    match_query = tail
+                    low_confidence = True
+                    result = {k: sub[k] for k in (
+                        "lat", "lon", "source", "label", "confidence")}
 
     # A geocoder can confidently pin an unrelated place (Nominatim has no name guard):
     # if the matched label doesn't account for the query's distinctive words, keep the
