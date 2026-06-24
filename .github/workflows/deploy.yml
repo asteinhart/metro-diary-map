@@ -1,0 +1,61 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: 'main'
+  # Allow manual runs from the Actions tab
+  workflow_dispatch:
+
+# Required for actions/deploy-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let one in-flight deploy finish; don't pile up concurrent runs
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build_site:
+    runs-on: ubuntu-latest
+    # The SvelteKit app lives in diary-map/, not the repo root
+    defaults:
+      run:
+        working-directory: diary-map
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: diary-map/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          # Produces base path "/metro-diary-map"
+          BASE_PATH: '/${{ github.event.repository.name }}'
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'diary-map/build/'
+
+  deploy:
+    needs: build_site
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
