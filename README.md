@@ -7,6 +7,9 @@
 TODO
 * Favorite stories saved locally
 * intro with images?
+* style to tooltip
+* fix mobile clicking
+* fix reading
 
 
 DONE

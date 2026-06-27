@@ -177,7 +177,7 @@
 
 		const title = document.createElement('h3');
 		title.className = 'dp-title';
-		title.textContent = props.title || 'Untitled entry';
+		title.textContent = props.title || 'Untitled diary';
 		wrap.appendChild(title);
 
 		const meta = [props.author && `By ${props.author}`, props.pub_year].filter(Boolean).join(' · ');
@@ -216,6 +216,7 @@
 		body.textContent = bodies[props.entry_id] ?? 'Loading…';
 		// keep wheel events on the body from zooming the map underneath
 		body.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
+
 		wrap.appendChild(body);
 
 		return wrap;
@@ -383,10 +384,10 @@
 	<aside class="panel">
 		<header class="panel-header">
 			<h1>Stories of New York City, Mapped</h1>
-			<p class="byline">
+			<p class="subtitle">
 				As told by the New York Times' Metropolitan Diary column from 1976 to 2026.
 			</p>
-			<p class="date">June 22, 2026</p>
+			<p class="byline">By <a href="https://austinsteinhart.com"> Austin Steinhart</a></p>
 		</header>
 
 		<div class="views">
@@ -442,6 +443,15 @@
 			</div>
 		</div>
 
+		<div class="read-more">
+			<a
+				href="https://austinsteinhart.com/metro-diary-map/about"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				Read more about this project
+			</a>
+		</div>
 		{#if debug}
 			<div class="debug">
 				<label class="range-label" for="conf">
@@ -501,15 +511,15 @@
 		letter-spacing: -0.01em;
 	}
 
-	.byline {
+	.subtitle {
 		margin: 10px 0 0;
 		font-size: 0.8rem;
 		font-weight: 600;
 		color: #111111;
 	}
 
-	.date {
-		margin: 2px 0 0;
+	.byline {
+		margin: 8px 0 0;
 		font-size: 0.78rem;
 		color: #555555;
 	}
@@ -675,6 +685,10 @@
 		font-size: 0.72rem;
 		color: #777777;
 	}
+	.read-more {
+		margin-top: 16px;
+		font-size: 0.78rem;
+	}
 
 	/* ---- Mobile: title bar on top, view buttons pinned to the bottom ---- */
 	@media (max-width: 640px) {
@@ -705,9 +719,6 @@
 			display: none;
 		}
 
-		.date {
-			display: none;
-		}
 
 		/* sliders hidden on mobile for now */
 		.year,
