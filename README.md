@@ -4,9 +4,19 @@
 2. copy and past stories from each diary
 3. separate out each post into individual diary entry
 
-
-* Freeway lower opacity for map on subway mode
+TODO
 * Favorite stories saved locally
+* intro with images?
+
+
+DONE
+* add in locations for neighborhoods
+* Freeway lower opacity for map on subway mode
+* fix mobile
+* At , on the subway, in a neighhorhood, all
+* favicon
+
+* all start with Dear Diary:
 * manually fix a few locations bunching
   * port authority bus 
   * bloomingdale
@@ -20,14 +30,9 @@
   * Avenues
   * jfk and kennedy airport
   * Studio 54 / hb studio
-* add in locations for neighborhoods
-* try black and white water color design
+
 * max zoom
-* fix mobile
-* At a place, on the subway, in a neighhorhood, all
-* intro with images?
-* favicon
-* all start with Dear Diary:
+* try black and white water color design
 
 neighbhor hood map from https://www.reddit.com/r/nyc/comments/f6ybzu/nyc_neighborhood_map/
 subway from ...
