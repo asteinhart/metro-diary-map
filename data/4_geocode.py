@@ -47,6 +47,14 @@ pinned somewhere wrong. Nominatim has no name guard of its own, so as a final ch
 distinctive words; when it doesn't ("Lundy's restaurant" -> "MARINA RESTAURANT, East
 Elmhurst, NY, USA") we keep the point but tag it low_confidence so the map can hide it.
 
+A handful of places are hand-fixed before any lookup (see MANUAL_COORDS / QUERY_ALIASES):
+the geocoders mis-locate a few well-known spots (Port Authority, Carnegie Deli, ...) and
+scatter the prose variants of one place across points ("Penn Station" vs "Pennsylvania
+Station", the LaGuardia/JFK variants), so we pin coordinates or fold variants onto one
+canonical query. Bare *numbered* streets/avenues ("42nd Street", "Second Avenue") are
+bounded to Manhattan, where the corpus almost always means them. Re-run after editing these
+with `geocode.py --refresh-overrides` to purge and recompute just the affected cache rows.
+
 The run is resumable and cheap on repeats: every distinct location string is geocoded
 once and cached to output/geocode_cache.parquet (keyed by the normalized query), so the
 ~600 location values collapse to a few hundred API calls and a re-run hits only new
@@ -57,6 +65,7 @@ User-Agent (override via NOMINATIM_USER_AGENT in .env).
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import os
 import re
 import time
@@ -68,9 +77,15 @@ import polars as pl
 import requests
 from tqdm import tqdm
 
-from entities import NEIGHBORHOODS
-
 DATA_DIR = Path(__file__).resolve().parent
+
+# The reference lists live in the number-prefixed `3_entities.py`, which isn't importable by
+# name (a module can't start with a digit), so load it by path.
+_ent_spec = importlib.util.spec_from_file_location("entities", DATA_DIR / "3_entities.py")
+_entities = importlib.util.module_from_spec(_ent_spec)
+_ent_spec.loader.exec_module(_entities)
+NEIGHBORHOODS = _entities.NEIGHBORHOODS
+
 OUT_DIR = DATA_DIR / "output"
 ENTITIES_PARQUET = OUT_DIR / "diary_entities.parquet"
 GEOCODE_PARQUET = OUT_DIR / "diary_geocoded.parquet"
@@ -112,6 +127,11 @@ CHECKPOINT_EVERY = 25  # persist the cache this often so a crash loses little
 # Bounding box bias for Nominatim so a bare "Fairway" or "Trinity Church" resolves in
 # NYC, not Kansas. (left, top, right, bottom) = (W, N, E, S) lon/lat around the five boroughs.
 NYC_VIEWBOX = "-74.30,40.92,-73.68,40.48"
+# Tighter box around Manhattan, used to pin bare numbered streets/avenues there (see
+# _NUMBERED_ST_AV_RE): "42nd Street" or "Second Avenue" with no borough almost always means
+# the Manhattan one, but Nominatim happily lands them on a same-numbered street in another
+# borough, so we bound the search to the island.
+MANHATTAN_VIEWBOX = "-74.02,40.88,-73.90,40.70"
 
 BOROUGH_CODE = {
     "Manhattan": 1,
@@ -500,8 +520,12 @@ def geosearch(query: str) -> dict | None:
     }
 
 
-def nominatim(query: str) -> dict | None:
-    """OpenStreetMap Nominatim, biased to the five boroughs. Good for businesses/POIs."""
+def nominatim(query: str, viewbox: str = NYC_VIEWBOX) -> dict | None:
+    """OpenStreetMap Nominatim, biased to a viewbox. Good for businesses/POIs.
+
+    `viewbox` defaults to the five boroughs; pass MANHATTAN_VIEWBOX to bound a search to
+    the island (used for bare numbered streets/avenues).
+    """
     _throttle("nominatim", NOMINATIM_MIN_INTERVAL)
     try:
         r = requests.get(
@@ -510,7 +534,7 @@ def nominatim(query: str) -> dict | None:
                 "q": query,
                 "format": "jsonv2",
                 "limit": 1,
-                "viewbox": NYC_VIEWBOX,
+                "viewbox": viewbox,
                 "bounded": 1,
             },
             headers={"User-Agent": NOMINATIM_UA},
@@ -656,9 +680,145 @@ def location_tail(q: str) -> str | None:
     return tail if _GEOCODABLE_TAIL_RE.search(tail) else None
 
 
+# --- manual overrides ---------------------------------------------------------
+# The geocoders get a few well-known places wrong -- a confident hit on a same-named spot
+# in the wrong borough -- and scatter the prose variants of one place ("Penn Station" vs
+# "Pennsylvania Station") across several points. These hand-fixes are applied before any
+# network lookup, keyed on the normalized query (see normalize()). Re-run with
+# `geocode.py --refresh-overrides` to purge the affected cache rows and recompute them.
+
+# Hand-verified coordinates for places the geocoders mis-locate. Every normalized variant
+# that should land on the same point lists the same (lat, lon).
+MANUAL_COORDS: dict[str, tuple[float, float]] = {
+    # Port Authority Bus Terminal (42nd St & 8th Ave) -- geocoders pin it downtown
+    "port authority": (40.75717952921247, -73.9911739036894),
+    "port authority terminal": (40.75717952921247, -73.9911739036894),
+    "port authority bus terminal": (40.75717952921247, -73.9911739036894),
+    "42nd street port authority terminal": (40.75717952921247, -73.9911739036894),
+    # LaGuardia Airport -- "La Guardia" (two words) otherwise resolves to an Astoria Blvd
+    # address ~1.6km south of the terminals; pin every variant to the airport itself
+    "la guardia": (40.77571, -73.87336),
+    "la guardia airport": (40.77571, -73.87336),
+    "laguardia": (40.77571, -73.87336),
+    "carnegie deli": (40.7507122990915, -73.99370858820676),
+    "studio 54": (40.76439744535597, -73.9836979460188),
+}
+
+# Prose variants folded onto a single canonical query, geocoded normally so they all share
+# one point. Used where the canonical itself resolves cleanly (no hand-coordinates needed).
+QUERY_ALIASES: dict[str, str] = {
+    # Penn Station: collapse onto "Penn Station" (resolves to 34th St-Penn Station)
+    "pennsylvania station": "Penn Station",
+    "new york penn station": "Penn Station",
+    # JFK: collapse onto "Kennedy Airport" (resolves to JFK International)
+    "kennedy international airport": "Kennedy Airport",
+    "jfk": "Kennedy Airport",
+    "jfk airport": "Kennedy Airport",
+}
+
+# A bare street that is a *numbered* street or avenue ("42nd Street", "East 102nd Street",
+# "First Avenue", "Fifth Avenue", "8th Ave", and the old-style "42d Street"). In this corpus
+# these are virtually always the Manhattan ones, so we bound their geocode to Manhattan
+# rather than letting Nominatim land them on a same-numbered street in another borough.
+_NUMBERED_ST_AV_RE = re.compile(
+    r"^(?:the\s+)?"
+    r"(?:(?:East|West|North|South|E|W|N|S)\.?\s+)?"
+    r"(?:\d{1,3}(?:st|nd|rd|th|d)?"
+    r"|First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth|Eleventh|Twelfth)"
+    r"\s+(?:Street|St|Avenue|Ave)\.?$",
+    re.IGNORECASE,
+)
+
+# Famous *named* Manhattan thoroughfares that also share their name with one in another
+# borough (Park Avenue runs through the Bronx; there's a Madison/Lexington in Brooklyn too),
+# so a bare mention almost always means the Manhattan one. Pinned to Manhattan like the
+# numbered streets. Normalized keys (see normalize()); the bare name and the "<name> Avenue"
+# form are both listed since the corpus writes it either way. Other named streets
+# ("Bleecker Street") are left alone -- they belong to their real borough.
+MANHATTAN_NAMED_STREETS = {
+    "park", "park avenue", "park avenue south",
+    "lexington", "lexington avenue",
+    "madison", "madison avenue",
+    "amsterdam", "amsterdam avenue",
+    "columbus", "columbus avenue",
+    "west end", "west end avenue",
+    "york", "york avenue",
+    "lenox", "lenox avenue",
+    "riverside", "riverside drive",
+    "central park west",
+    "convent", "convent avenue",
+    "st nicholas avenue", "saint nicholas avenue",
+    "fort washington avenue",
+    "avenue of the americas",
+}
+
+
+def _force_manhattan(q: str) -> bool:
+    """Should this bare street be pinned to Manhattan?
+
+    True for numbered streets/avenues and the famous named Manhattan thoroughfares above --
+    the cases where the same name also exists in another borough and the corpus means the
+    Manhattan one.
+    """
+    return bool(_NUMBERED_ST_AV_RE.match(q)) or normalize(q) in MANHATTAN_NAMED_STREETS
+
+
+# Nominatim matches a digit ordinal ("9th Avenue", "East 52nd Street") far better than the
+# word form ("Ninth Avenue") or the old-style "d" abbreviation ("52d", "73d") the diary
+# uses -- those return nothing when the search is bounded to Manhattan. So we rewrite the
+# ordinal to the digit form before the Manhattan lookup.
+_WORD_TO_NUM = {
+    "first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6,
+    "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10, "eleventh": 11, "twelfth": 12,
+}
+_WORD_ORDINAL_RE = re.compile(r"\b(" + "|".join(_WORD_TO_NUM) + r")\b", re.IGNORECASE)
+_NUM_ORDINAL_RE = re.compile(r"\b(\d{1,3})(?:st|nd|rd|th|d)?\b", re.IGNORECASE)
+
+
+def _ordinal(n: int) -> str:
+    """123 -> '123rd', 11 -> '11th'."""
+    suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+def _digit_ordinals(q: str) -> str:
+    """Rewrite word/old-style ordinals to digit ordinals: 'Ninth Avenue' -> '9th Avenue',
+    'East 52d Street' -> 'East 52nd Street'. Leaves named streets ('Park Avenue') untouched."""
+    q = _WORD_ORDINAL_RE.sub(lambda m: _ordinal(_WORD_TO_NUM[m.group(1).lower()]), q)
+    return _NUM_ORDINAL_RE.sub(lambda m: _ordinal(int(m.group(1))), q)
+
+
+def is_override(q: str) -> bool:
+    """Does the cleaned query `q` get touched by a manual fix (coords/alias/Manhattan-pin)?
+
+    Used by --refresh-overrides to find the cache rows to recompute.
+    """
+    qn = normalize(q)
+    return qn in MANUAL_COORDS or qn in QUERY_ALIASES or _force_manhattan(q)
+
+
 def geocode_query(raw: str, neighborhoods: list[str] | None) -> dict:
     """Classify one cleaned location string, route it, and return a result record."""
     q = clean_query(raw)
+
+    # hand-pinned coordinates win outright -- authoritative and free (no network call)
+    coords = MANUAL_COORDS.get(normalize(q))
+    if coords:
+        return {
+            "query_raw": raw,
+            "query": q,
+            "category": classify(q),
+            "lat": coords[0],
+            "lon": coords[1],
+            "source": "manual",
+            "label": q,
+            "confidence": None,
+            "low_confidence": False,
+            "status": "ok",
+        }
+    # fold prose variants onto one canonical place, then geocode that normally
+    q = QUERY_ALIASES.get(normalize(q), q)
+
     category = classify(q)
     low_confidence = category == "bare_street"
     result: dict | None = None
@@ -693,6 +853,15 @@ def geocode_query(raw: str, neighborhoods: list[str] | None) -> dict:
             if result:
                 break
             result = attempt()
+    elif _force_manhattan(q):
+        # a numbered street/avenue or a famous named Manhattan thoroughfare -> pin to
+        # Manhattan (see _force_manhattan). It's an arbitrary point on the street, so it's
+        # low_confidence regardless of how classify() bucketed it ("42d Street" -> place).
+        match_query = _digit_ordinals(q)  # Nominatim prefers '9th Avenue' to 'Ninth Avenue'
+        low_confidence = True
+        result = nominatim(
+            f"{match_query}, Manhattan, New York, NY", viewbox=MANHATTAN_VIEWBOX
+        )
     else:  # place / bare_street -- GeoSearch first, then Nominatim for POIs it misses
         result = geosearch(q) or nominatim(f"{q}, New York, NY")
         # nothing matched the place name itself -> fall back to an embedded location
@@ -781,7 +950,9 @@ def write_results(df: pl.DataFrame) -> pl.DataFrame:
 # --- run ----------------------------------------------------------------------
 
 
-def cmd_run(input_path: Path, limit: int | None, dry_run: bool) -> None:
+def cmd_run(
+    input_path: Path, limit: int | None, dry_run: bool, refresh_overrides: bool = False
+) -> None:
     df = load_entries(input_path, limit)
 
     # one (raw_query, neighborhoods) per entry; the cache key is the normalized query
@@ -836,6 +1007,11 @@ def cmd_run(input_path: Path, limit: int | None, dry_run: bool) -> None:
         )
 
     cache = load_cache()
+    if refresh_overrides:
+        purged = [qn for qn, row in cache.items() if is_override(row.get("query") or "")]
+        for qn in purged:
+            del cache[qn]
+        print(f"--refresh-overrides: purged {len(purged)} cached rows to recompute.")
     pending = [(qn, e) for qn, e in uniques.items() if qn not in cache]
     print(f"{len(uniques) - len(pending)} cached; {len(pending)} to geocode.\n")
 
@@ -909,9 +1085,15 @@ def main() -> None:
         action="store_true",
         help="classify + route every query and print the buckets, call nothing",
     )
+    ap.add_argument(
+        "--refresh-overrides",
+        action="store_true",
+        help="purge cached rows touched by a manual fix (MANUAL_COORDS / QUERY_ALIASES / "
+        "numbered streets) and recompute them",
+    )
     args = ap.parse_args()
     input_path = args.input if args.input.is_absolute() else DATA_DIR / args.input
-    cmd_run(input_path, args.limit, args.dry_run)
+    cmd_run(input_path, args.limit, args.dry_run, args.refresh_overrides)
 
 
 if __name__ == "__main__":

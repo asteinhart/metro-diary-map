@@ -7,13 +7,18 @@ Upstream we have, all joinable on `entry_id`:
                                      subway_lines, specific_locations, neighborhoods, boroughs
     output/diary_geocoded.parquet   one geocoded *specific location* per entry -> lat/lon
 
-and two reference geometries (use these, don't invent boundaries):
+and these reference geometries (use these, don't invent boundaries):
 
     input/borough_boundaries.geojson   5 borough MultiPolygons (boroname)
     input/subway.geojson               29 line MultiLineStrings, keyed by `service` (1, A, F, ...)
     input/area_places.geojson          named polygons for big places that geocode to one point
                                        (Central Park, ...); entries naming one are scattered
                                        across the whole polygon. Add features to extend it.
+    output/neighborhoods.geojson       NYC neighborhood polygons with admin levels (built by
+                                       6_neighborhoods.py). The specific neighborhood polygons
+                                       (is_admin_0_union=False) plus one dissolved broad-area
+                                       polygon per admin_0 (is_admin_0_union=True). We place a
+                                       neighborhood-only entry inside its polygon here.
 
 We emit three "views" of the same entries, each a GeoJSON the map loads as its own
 source/layer, plus a body lookup and two slimmed basemap layers:
@@ -24,15 +29,17 @@ source/layer, plus a body lookup and two slimmed basemap layers:
                         point ON the line they named (matched to `service`), kept inside the
                         entry's borough polygon when we know it; entries that name no
                         matchable line ride a random point on the whole network instead.
-    areas.geojson       View 3 -- every entry placed at the most specific spot we can: its
-                        exact geocoded point if it has one, otherwise a random point inside
-                        its borough polygon. The borough is the one the entry names, or -- for
-                        neighborhood-only entries -- the borough we learned that neighborhood
-                        sits in from entries that mention both (no neighborhood polygons were
-                        provided). Entries naming only a neighborhood we can't map are skipped
-                        (count reported); `placement` records which tier landed each point.
+    areas.geojson       View 3 -- every entry placed at the most specific spot we can, in
+                        order: its exact geocoded point; else a random point inside the
+                        neighborhood it names (matched in neighborhoods.geojson -- the specific
+                        polygon when the name resolves there, else the broad admin_0 area);
+                        else a random point inside its borough polygon (the borough it names,
+                        or the one we learned the neighborhood sits in from entries that mention
+                        both). Entries naming only a neighborhood we can't place anywhere are
+                        skipped (count reported); `placement` records which tier landed each point.
     entries.json        {entry_id: body} -- the body text lives here, not in every feature,
-                        so the geojson stays small; the map fetches it on click.
+                        so the geojson stays small; the map fetches it on click. Every body is
+                        normalized to open "Dear Diary:" (added when the entry lacks it).
     boroughs.geojson    basemap: the borough polygons, trimmed + rounded.
     subway_lines.geojson basemap: the subway lines, one feature per service, trimmed + rounded.
 
@@ -49,7 +56,9 @@ import argparse
 import json
 import math
 import random
+import re
 import time
+from difflib import get_close_matches
 from pathlib import Path
 
 import geopandas as gpd
@@ -65,6 +74,9 @@ INPUT_DIR = DATA_DIR / "input"
 ENTRIES_PARQUET = OUT_DIR / "diary_entries.parquet"
 ENTITIES_PARQUET = OUT_DIR / "diary_entities.parquet"
 GEOCODE_PARQUET = OUT_DIR / "diary_geocoded.parquet"
+# NYC neighborhood polygons + admin levels (built by 6_neighborhoods.py) -- used to place a
+# neighborhood-only entry inside its polygon instead of scattering it across a whole borough.
+NEIGHBORHOODS_GEOJSON = OUT_DIR / "neighborhoods.geojson"
 
 BOROUGHS_GEOJSON = INPUT_DIR / "borough_boundaries.geojson"
 SUBWAY_GEOJSON = INPUT_DIR / "subway.geojson"
@@ -83,7 +95,6 @@ BASEMAP_PRECISION = 5
 # coincident points (same station, venue, "Central Park") are fanned out within roughly
 # this radius so they don't stack into one dot -- ~1.5 short NYC blocks
 JITTER_RADIUS_M = 120.0
-GOLDEN_ANGLE = 2.399963229728653  # radians; even sunflower packing of a disk
 
 # entries write boroughs roughly; fold the variants we can onto the 5 official names
 BOROUGH_ALIASES = {
@@ -100,6 +111,11 @@ BOROUGH_ALIASES = {
 def _canon_borough(raw) -> str | None:
     """Fold a free-text borough mention onto one of the 5 official names, or None."""
     return BOROUGH_ALIASES.get(str(raw).strip().lower())
+
+
+def _norm_name(raw) -> str:
+    """Match key for a place name: lowercase, punctuation folded to spaces, collapsed."""
+    return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", " ", str(raw or "").lower())).strip()
 
 
 # --------------------------------------------------------------------------------------
@@ -137,7 +153,9 @@ class Region:
     def random_point(self, rng: random.Random) -> tuple:
         """A uniform random point inside the region (bbox rejection sampling)."""
         for _ in range(10000):
-            p = Point(rng.uniform(self.minx, self.maxx), rng.uniform(self.miny, self.maxy))
+            p = Point(
+                rng.uniform(self.minx, self.maxx), rng.uniform(self.miny, self.maxy)
+            )
             if self.prepared.contains(p):
                 return p.x, p.y
         p = self.geom.representative_point()  # degenerate fallback (shouldn't happen)
@@ -158,7 +176,9 @@ class LineGeom:
         if borough is not None:
             clipped = _lines_only(geom.intersection(borough.geom))
             if clipped is not None:
-                geom = clipped  # the named line never enters the borough -> keep full line
+                geom = (
+                    clipped  # the named line never enters the borough -> keep full line
+                )
         p = geom.interpolate(rng.uniform(0, geom.length))
         return p.x, p.y
 
@@ -175,8 +195,9 @@ def spread_coincident(features: list, radius_m: float = JITTER_RADIUS_M) -> list
 
     Many entries geocode to the same spot (a station, a venue, "Central Park"). We move
     only the *displayed* geometry -- each entry's true location stays in spec_lat/spec_lon
-    -- laying coincident points out in a deterministic sunflower disk. Deterministic so
-    it's stable across runs and identical across views (both derive from the same points).
+    -- scattering coincident points to random offsets within `radius_m` (no regular ring or
+    sunflower pattern). The jitter is seeded per spot from the shared coordinate, so it's
+    stable across runs and identical across views (both derive from the same points).
     """
     groups: dict[tuple, list] = {}
     for f in features:
@@ -185,12 +206,19 @@ def spread_coincident(features: list, radius_m: float = JITTER_RADIUS_M) -> list
         if len(grp) == 1:
             continue
         grp.sort(key=lambda f: f["properties"]["entry_id"])
-        n = len(grp)
+        # per-spot RNG keyed on the shared coordinate -> stable across runs and views
+        jrng = random.Random(
+            f"{SEED}:{round(lon, POINT_PRECISION)}:{round(lat, POINT_PRECISION)}"
+        )
         dlat = radius_m / 111_000.0  # meters -> degrees latitude
-        dlon = radius_m / (111_000.0 * math.cos(math.radians(lat)))  # ... longitude here
-        for i, f in enumerate(grp):
-            r = math.sqrt((i + 0.5) / n)  # sqrt keeps the disk evenly filled, not center-heavy
-            theta = i * GOLDEN_ANGLE
+        dlon = radius_m / (
+            111_000.0 * math.cos(math.radians(lat))
+        )  # ... longitude here
+        for f in grp:
+            r = math.sqrt(
+                jrng.random()
+            )  # sqrt keeps the disk evenly filled, not center-heavy
+            theta = jrng.uniform(0, 2 * math.pi)
             f["geometry"]["coordinates"] = [
                 round(lon + r * dlon * math.cos(theta), POINT_PRECISION),
                 round(lat + r * dlat * math.sin(theta), POINT_PRECISION),
@@ -206,7 +234,10 @@ def spread_coincident(features: list, radius_m: float = JITTER_RADIUS_M) -> list
 def load_boroughs() -> dict:
     """boroname -> Region."""
     gdf = gpd.read_file(BOROUGHS_GEOJSON)
-    return {row["boroname"]: Region(row["boroname"], row.geometry) for _, row in gdf.iterrows()}
+    return {
+        row["boroname"]: Region(row["boroname"], row.geometry)
+        for _, row in gdf.iterrows()
+    }
 
 
 def load_subway_lines() -> tuple[dict, LineGeom]:
@@ -227,7 +258,33 @@ def load_area_places() -> dict:
     if not AREA_PLACES_GEOJSON.exists():
         return {}
     gdf = gpd.read_file(AREA_PLACES_GEOJSON)
-    return {row["name"].strip().lower(): Region(row["name"], row.geometry) for _, row in gdf.iterrows()}
+    return {
+        row["name"].strip().lower(): Region(row["name"], row.geometry)
+        for _, row in gdf.iterrows()
+    }
+
+
+def load_neighborhoods() -> tuple[dict, dict]:
+    """Two normalized-name -> Region lookups from neighborhoods.geojson.
+
+    Returns (specific, broad):
+      specific  the individual neighborhood polygons (is_admin_0_union=False), keyed by name
+      broad     the one dissolved polygon per admin_0 (is_admin_0_union=True), keyed by admin_0
+
+    A neighborhood-only entry is placed inside its `specific` polygon when its name resolves
+    there, else inside the `broad` area for an admin_0. Duplicate names (e.g. Murray Hill, in
+    both Midtown and Flushing) keep the first feature -- the file carries no borough column to
+    disambiguate, and in this corpus the first listed is the likelier-intended one.
+    """
+    if not NEIGHBORHOODS_GEOJSON.exists():
+        return {}, {}
+    gdf = gpd.read_file(NEIGHBORHOODS_GEOJSON)
+    specific: dict = {}
+    broad: dict = {}
+    for _, row in gdf.iterrows():
+        target = broad if row["is_admin_0_union"] else specific
+        target.setdefault(_norm_name(row["name"]), Region(row["name"], row.geometry))
+    return specific, broad
 
 
 def load_entries() -> list[dict]:
@@ -247,8 +304,14 @@ def load_entries() -> list[dict]:
         pl.read_parquet(GEOCODE_PARQUET)
         .filter(pl.col("status") == "ok")
         .select(
-            "entry_id", "lat", "lon", "query_raw",
-            "confidence", "low_confidence", "source", "category",
+            "entry_id",
+            "lat",
+            "lon",
+            "query_raw",
+            "confidence",
+            "low_confidence",
+            "source",
+            "category",
         )
     )
     joined = (
@@ -280,12 +343,23 @@ def _boro_phrase(name: str) -> str:
     return "the Bronx" if name == "Bronx" else name
 
 
-def build_neighborhood_borough_map(rows: list[dict]) -> dict:
-    """neighborhood (lowercased) -> borough, learned from entries that name both.
+# every entry should read as a diary entry, opening "Dear Diary:". Most NYT entries already do;
+# some open "Dear Diary," and many carry no salutation at all -- match any leading variant
+# (case/punctuation/whitespace) so we can strip it and re-add the canonical one exactly once.
+_DEAR_DIARY_RE = re.compile(r"^\s*dear\s+diary\s*[:,]?\s*", re.IGNORECASE)
 
-    No neighborhood polygons were provided, so we can't place a neighborhood precisely --
-    but whenever an entry mentions a neighborhood *and* a borough we can learn which
-    borough that neighborhood sits in, then reuse it to place neighborhood-only entries.
+
+def _dear_diary_body(body: str) -> str:
+    """Normalize a body to open with 'Dear Diary: ', adding the salutation when it's missing."""
+    return f"Dear Diary:\n\n{_DEAR_DIARY_RE.sub('', body, count=1).lstrip()}"
+
+
+def build_neighborhood_borough_map(rows: list[dict]) -> dict:
+    """neighborhood (normalized) -> borough, learned from entries that name both.
+
+    The whole-borough fallback for a neighborhood we can't place precisely (it isn't in
+    neighborhoods.geojson): whenever an entry mentions a neighborhood *and* a borough we
+    learn which borough that neighborhood sits in, then reuse it for neighborhood-only entries.
     """
     pairs: dict[str, dict] = {}
     for row in rows:
@@ -293,34 +367,77 @@ def build_neighborhood_borough_map(rows: list[dict]) -> dict:
         if not boros:
             continue
         for nbhd in row.get("neighborhoods") or []:
-            counts = pairs.setdefault(str(nbhd).strip().lower(), {})
+            counts = pairs.setdefault(_norm_name(nbhd), {})
             for b in boros:
                 counts[b] = counts.get(b, 0) + 1
     # pick the most-co-mentioned borough for each neighborhood (ties broken by name)
-    return {
-        nbhd: max(sorted(counts), key=counts.get)
-        for nbhd, counts in pairs.items()
-    }
+    return {nbhd: max(sorted(counts), key=counts.get) for nbhd, counts in pairs.items()}
 
 
-def _resolve_borough(
-    row: dict, boroughs: dict, nbhd_map: dict
-) -> tuple[Region | None, str | None, str | None]:
-    """Place an entry in a borough and say which tier did it.
+def _resolve_borough(row: dict, boroughs: dict, nbhd_map: dict) -> Region | None:
+    """A borough for the entry -- the whole-borough fallback when nothing finer is available.
 
     Prefer a borough the entry names outright; otherwise infer one from a neighborhood it
-    names (via `nbhd_map`). Returns (Borough, "borough", None),
-    (Borough, "neighborhood", <the neighborhood that resolved it>), or (None, None, None).
+    names (via `nbhd_map`, for neighborhoods missing from neighborhoods.geojson). None when
+    the entry pins no borough at all.
     """
     for raw in row.get("boroughs") or []:
         canon = _canon_borough(raw)
         if canon and canon in boroughs:
-            return boroughs[canon], "borough", None
+            return boroughs[canon]
     for nbhd in row.get("neighborhoods") or []:
-        canon = nbhd_map.get(str(nbhd).strip().lower())
+        canon = nbhd_map.get(_norm_name(nbhd))
         if canon and canon in boroughs:
-            return boroughs[canon], "neighborhood", str(nbhd)
-    return None, None, None
+            return boroughs[canon]
+    return None
+
+
+# Direction words that flip a place to its opposite ("East" vs "West" Harlem, "Upper" vs
+# "Lower"): a fuzzy name match that adds, drops, or swaps one is almost always wrong, so we
+# block it. SequenceMatcher rates "west harlem"/"east harlem" ~0.9 -- exactly the trap.
+_DIRECTION_TOKENS = {"east", "west", "north", "south", "upper", "lower", "central"}
+# How close a name has to be to count as the same neighborhood ("Koreatown" -> "Korea Town").
+_NBHD_FUZZY_CUTOFF = 0.86
+
+
+def _direction_tokens(key: str) -> set:
+    return {t for t in key.split() if t in _DIRECTION_TOKENS}
+
+
+def _fuzzy_region(key: str, index: dict) -> Region | None:
+    """Closest-name Region in `index`, rejecting candidates that swap a direction word."""
+    for cand in get_close_matches(key, list(index), n=3, cutoff=_NBHD_FUZZY_CUTOFF):
+        if _direction_tokens(key) == _direction_tokens(cand):
+            return index[cand]
+    return None
+
+
+def match_neighborhood(name, specific: dict, broad: dict) -> Region | None:
+    """The smallest neighborhood polygon a name resolves to, or None.
+
+    Most specific first: an exact specific-neighborhood polygon, then the broad admin_0 area;
+    only if neither matches exactly do we fall back to a guarded closest-string match (again
+    specific before broad). So a name that is only an admin_0 ("Midtown" with no specific
+    polygon of its own) lands in the dissolved broad-area boundary.
+    """
+    key = _norm_name(name)
+    if not key:
+        return None
+    return (
+        specific.get(key)
+        or broad.get(key)
+        or _fuzzy_region(key, specific)
+        or _fuzzy_region(key, broad)
+    )
+
+
+def _resolve_neighborhood(row: dict, specific: dict, broad: dict) -> Region | None:
+    """The neighborhood polygon for the entry -- the first of its neighborhoods that matches."""
+    for nbhd in row.get("neighborhoods") or []:
+        region = match_neighborhood(nbhd, specific, broad)
+        if region is not None:
+            return region
+    return None
 
 
 def _place_label(
@@ -338,13 +455,17 @@ def _place_label(
     if placement.startswith("subway:"):
         svc = placement.split(":", 1)[1]
         base = "On the subway" if svc == "network" else f"On the {svc} train"
-        return f"{base} in {_boro_phrase(borough.name)}" if borough is not None else base
-    if placement == "borough":
-        return f"Somewhere in {_boro_phrase(borough.name)}" if borough is not None else None
+        return (
+            f"{base} in {_boro_phrase(borough.name)}" if borough is not None else base
+        )
     if placement == "neighborhood":
-        if borough is None:
-            return nbhd
-        return f"{nbhd}, {borough.name}" if nbhd else f"Somewhere in {_boro_phrase(borough.name)}"
+        return f"Somewhere in {nbhd}" if nbhd else None
+    if placement == "borough":
+        return (
+            f"Somewhere in {_boro_phrase(borough.name)}"
+            if borough is not None
+            else None
+        )
     return None
 
 
@@ -395,7 +516,9 @@ def feature_collection(features: list) -> dict:
     return {"type": "FeatureCollection", "features": features}
 
 
-def build_area_positions(rows: list[dict], area_places: dict, rng: random.Random) -> dict:
+def build_area_positions(
+    rows: list[dict], area_places: dict, rng: random.Random
+) -> dict:
     """entry_id -> (lon, lat, place_name) for entries whose geocode names a big area place.
 
     Entries that just wrote "Central Park" all geocode to one centroid; instead we scatter
@@ -421,7 +544,9 @@ def geocoded_feature(row: dict, area_positions: dict) -> dict:
         lon, lat, name = scattered
         placement = f"area:{name}"
         return point_feature(row, lon, lat, placement, _place_label(row, placement))
-    return point_feature(row, row["lon"], row["lat"], "specific", _place_label(row, "specific"))
+    return point_feature(
+        row, row["lon"], row["lat"], "specific", _place_label(row, "specific")
+    )
 
 
 # --------------------------------------------------------------------------------------
@@ -453,10 +578,13 @@ def build_subway(
     for row in rows:
         if not row.get("subway_mentioned"):
             continue
-        borough, _, _ = _resolve_borough(row, boroughs, nbhd_map)
+        borough = _resolve_borough(row, boroughs, nbhd_map)
         matched = next(
-            (str(s).upper() for s in (row.get("subway_lines") or [])
-             if str(s).upper() in service_set),
+            (
+                str(s).upper()
+                for s in (row.get("subway_lines") or [])
+                if str(s).upper() in service_set
+            ),
             None,
         )
         if matched:
@@ -464,22 +592,34 @@ def build_subway(
         else:
             geom, placement = network, "subway:network"
         lon, lat = geom.random_point_in_borough(borough, rng)
-        feats.append(point_feature(row, lon, lat, placement, _place_label(row, placement, borough)))
+        feats.append(
+            point_feature(
+                row, lon, lat, placement, _place_label(row, placement, borough)
+            )
+        )
         if len(feats) % 250 == 0:
             log(f"    subway: placed {len(feats)} ...")
     return feature_collection(feats)
 
 
 def build_areas(
-    rows: list[dict], boroughs: dict, nbhd_map: dict, area_positions: dict, rng: random.Random
+    rows: list[dict],
+    boroughs: dict,
+    nbhd_map: dict,
+    nbhd_specific: dict,
+    nbhd_broad: dict,
+    area_positions: dict,
+    rng: random.Random,
 ) -> tuple[dict, int]:
-    """View 3: most specific spot available -- exact geocode, else random-in-borough.
+    """View 3: most specific spot available, in tiers (`placement` records which one did it):
 
-    A geocoded entry sits at its point (scattered across an area place if it named one);
-    otherwise the borough -- named outright or inferred from a neighborhood (`nbhd_map`) --
-    gets a random point, and `placement` records which tier did it. Returns
-    (FeatureCollection, n_skipped) where skipped entries named only a neighborhood we
-    couldn't map to a borough, so they have nowhere to land.
+      specific      its exact geocode (scattered across an area place if it named one)
+      neighborhood  a random point inside the neighborhood polygon its name resolves to
+      borough       a random point inside the borough it names, or the borough we inferred a
+                    neighborhood sits in (for neighborhoods missing from neighborhoods.geojson)
+
+    Returns (FeatureCollection, n_skipped); skipped entries named only a neighborhood that
+    matched no polygon and mapped to no borough, so they have nowhere to land.
     """
     feats = []
     skipped = 0
@@ -489,10 +629,27 @@ def build_areas(
         if row.get("lat") is not None and row.get("lon") is not None:
             feats.append(geocoded_feature(row, area_positions))
             continue
-        borough, tier, nbhd = _resolve_borough(row, boroughs, nbhd_map)
+        region = _resolve_neighborhood(row, nbhd_specific, nbhd_broad)
+        if region is not None:
+            lon, lat = region.random_point(rng)
+            feats.append(
+                point_feature(
+                    row,
+                    lon,
+                    lat,
+                    "neighborhood",
+                    _place_label(row, "neighborhood", nbhd=region.name),
+                )
+            )
+            continue
+        borough = _resolve_borough(row, boroughs, nbhd_map)
         if borough is not None:
             lon, lat = borough.random_point(rng)
-            feats.append(point_feature(row, lon, lat, tier, _place_label(row, tier, borough, nbhd)))
+            feats.append(
+                point_feature(
+                    row, lon, lat, "borough", _place_label(row, "borough", borough)
+                )
+            )
         elif row.get("neighborhoods"):
             skipped += 1
     return feature_collection(feats), skipped
@@ -507,7 +664,10 @@ def _geom_feature(geom, properties: dict, precision: int) -> dict:
     g = mapping(geom)
     return {
         "type": "Feature",
-        "geometry": {"type": g["type"], "coordinates": _round_coords(g["coordinates"], precision)},
+        "geometry": {
+            "type": g["type"],
+            "coordinates": _round_coords(g["coordinates"], precision),
+        },
         "properties": properties,
     }
 
@@ -563,18 +723,24 @@ def cmd_run(limit: int | None) -> None:
     _T0 = time.perf_counter()
     rng = random.Random(SEED)
 
-    log("loading boundaries (boroughs, subway lines, area places) ...")
+    log("loading boundaries (boroughs, subway lines, area places, neighborhoods) ...")
     boroughs = load_boroughs()
     lines, network = load_subway_lines()
     service_set = set(lines.keys())
     area_places = load_area_places()
-    log(f"  {len(boroughs)} boroughs, {len(lines)} subway services, {len(area_places)} area places")
+    nbhd_specific, nbhd_broad = load_neighborhoods()
+    log(
+        f"  {len(boroughs)} boroughs, {len(lines)} subway services, {len(area_places)} area places, "
+        f"{len(nbhd_specific)} neighborhoods (+{len(nbhd_broad)} broad areas)"
+    )
 
     log("loading diary entries (entries + entities + geocoded) ...")
     rows = load_entries()
     # learn neighborhood -> borough from the full dataset before any --limit slice
     nbhd_map = build_neighborhood_borough_map(rows)
-    log(f"  {len(rows)} entries | {len(nbhd_map)} neighborhood->borough mappings learned")
+    log(
+        f"  {len(rows)} entries | {len(nbhd_map)} neighborhood->borough mappings learned"
+    )
     if limit:
         rows = rows[:limit]
         log(f"  --limit {limit}: keeping first {len(rows)}")
@@ -589,7 +755,9 @@ def cmd_run(limit: int | None) -> None:
     log("building view 2: subway (placing each on a line) ...")
     subway = build_subway(rows, boroughs, nbhd_map, lines, network, service_set, rng)
     log("building view 3: areas (most-specific placement) ...")
-    areas, skipped = build_areas(rows, boroughs, nbhd_map, area_positions, rng)
+    areas, skipped = build_areas(
+        rows, boroughs, nbhd_map, nbhd_specific, nbhd_broad, area_positions, rng
+    )
 
     # fan out remaining dots that geocoded to the same spot (subway points sit on the line --
     # leave them; area-scattered points are already spread across their polygon)
@@ -604,7 +772,11 @@ def cmd_run(limit: int | None) -> None:
         for fc in (locations, subway, areas)
         for f in fc["features"]
     }
-    bodies = {r["entry_id"]: r["body"] for r in rows if r["entry_id"] in shown and r.get("body")}
+    bodies = {
+        r["entry_id"]: _dear_diary_body(r["body"])
+        for r in rows
+        if r["entry_id"] in shown and r.get("body")
+    }
 
     log("writing output ...")
     write_json(MAP_DIR / "locations.geojson", locations)
@@ -615,26 +787,32 @@ def cmd_run(limit: int | None) -> None:
     write_json(MAP_DIR / "subway_lines.geojson", build_basemap_subway())
 
     on_network = sum(
-        1 for f in subway["features"] if f["properties"]["placement"] == "subway:network"
+        1
+        for f in subway["features"]
+        if f["properties"]["placement"] == "subway:network"
     )
     area_tiers: dict[str, int] = {}
     for f in areas["features"]:
         tier = f["properties"]["placement"]
         area_tiers[tier] = area_tiers.get(tier, 0) + 1
     scattered = sum(
-        1 for f in locations["features"] if f["properties"]["placement"].startswith("area:")
+        1
+        for f in locations["features"]
+        if f["properties"]["placement"].startswith("area:")
     )
     print(f"entries processed         : {len(rows)}")
-    print(f"locations.geojson  (dots) : {len(locations['features'])}"
-          f"  ({scattered} scattered across an area place)")
+    print(
+        f"locations.geojson  (dots) : {len(locations['features'])}"
+        f"  ({scattered} scattered across an area place)"
+    )
     print(
         f"subway.geojson     (lines): {len(subway['features'])}"
         f"  ({on_network} on whole-network -- no matchable line named)"
     )
     print(f"areas.geojson      (most-specific): {len(areas['features'])}")
-    for tier in ("specific", "borough", "neighborhood"):
+    for tier in ("specific", "neighborhood", "borough"):
         print(f"    {tier:13}: {area_tiers.get(tier, 0)}")
-    print(f"  skipped (neighborhood we couldn't map to a borough): {skipped}")
+    print(f"  skipped (neighborhood matched no polygon and no borough): {skipped}")
     print(f"entries.json       (bodies): {len(bodies)}")
     print(f"-> {MAP_DIR}")
 

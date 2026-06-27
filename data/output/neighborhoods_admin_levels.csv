@@ -1,0 +1,733 @@
+name,admin_0,admin_1,admin_2,name_raw,is_admin_0_union
+Battery Park City,Battery Park City,Battery Park City,Battery Park City,Battery Park City,False
+Chelsea,Chelsea,Chelsea,Chelsea,Chelsea,False
+Chinatown,Chinatown,Chinatown,Chinatown,Chinatown,False
+Civic Center,Civic Center,Civic Center,Civic Center,Civic Center,False
+Columbia University Sporting Complex,Inwood,Inwood,Columbia University Sporting Complex,Columbia University Sporting Complex (INWOOD),False
+Columbia University,Morningside Heights,Morningside Heights,Columbia University,Columbia University (MORNINGSIDE HEIGHTS),False
+Con Edison East River Generating Station,Con Edison East River Generating Station,Con Edison East River Generating Station,Con Edison East River Generating Station,Con Edison East River Generating Station,False
+Downtown Helipad,Financial District,Financial District,Downtown Helipad,Downtown Helipad (Financial District),False
+DSNY Garage M3,Lower East Side,Lower East Side,DSNY Garage M3,DSNY Garage M3 (Lower East Side),False
+DSNY 91st St. Marine Transfer Station,Upper East Side,Yorkville,DSNY 91st St. Marine Transfer Station,DSNY 91st St. Marine Transfer Station (YORKVILLE(UPPER EAST SIDE)),False
+East Harlem,East Harlem,East Harlem,East Harlem,East Harlem,False
+East Village,East Village,East Village,East Village,East Village,False
+Ellis Island,Ellis Island,Ellis Island,Ellis Island,Ellis Island,False
+FDNY EMS Station 4/ Division 1,Lower East Side,Lower East Side,FDNY EMS Station 4/ Division 1,FDNY EMS Station 4/ Division 1 (Lower East Side),False
+FDNY Fire Academy,Randall'S Island,Randall'S Island,FDNY Fire Academy,FDNY Fire Academy (RANDALL'S ISLAND),False
+FDNY Marine 1,Greenwich Village,Meatpacking District,FDNY Marine 1,FDNY Marine 1 (Meatpacking District (WEST VILLAGE(GREENWICH VILLAGE))),False
+Financial District,Financial District,Financial District,Financial District,Financial District,False
+Flatiron District,Flatiron District,Flatiron District,Flatiron District,Flatiron District,False
+Henry Hudson Bridge TBTA Building,Inwood,Inwood,Henry Hudson Bridge TBTA Building,Henry Hudson Bridge TBTA Building (INWOOD),False
+Governors Island,Governors Island,Governors Island,Governors Island,Governors Island,False
+Gramercy,Gramercy,Gramercy,Gramercy,Gramercy,False
+Greenwich Village,Greenwich Village,Greenwich Village,Greenwich Village,Greenwich Village,False
+Harlem,Harlem,Harlem,Harlem,Harlem,False
+Helipads Hudson River,Helipads Hudson River,Helipads Hudson River,Helipads Hudson River,Helipads Hudson River,False
+Hell's Kitchen,Hell's Kitchen,Hell's Kitchen,Hell's Kitchen,Hell's Kitchen,False
+Hudson Square,Hudson Square,Hudson Square,Hudson Square,Hudson Square,False
+Hamilton Heights,Harlem,Harlem,Hamilton Heights,Hamilton Heights (HARLEM),False
+Hudson Yards,Hudson Yards,Hudson Yards,Hudson Yards,Hudson Yards,False
+Inwood,Inwood,Inwood,Inwood,Inwood,False
+Kips Bay Helipad,Kips Bay,Kips Bay,Kips Bay Helipad,Kips Bay Helipad (KIPS BAY),False
+Liberty Island,Liberty Island,Liberty Island,Liberty Island,Liberty Island,False
+Little Italy,Little Italy,Little Italy,Little Italy,Little Italy,False
+Lower East Side,Lower East Side,Lower East Side,Lower East Side,Lower East Side,False
+Manhattan Cruise Terminal,Hells Kitchen,Hells Kitchen,Manhattan Cruise Terminal,Manhattan Cruise Terminal (HELLS KITCHEN),False
+Midtown,Midtown,Midtown,Midtown,Midtown,False
+Midtown East,Midtown,Midtown,Midtown East,Midtown East (MIDTOWN),False
+North River Wastewater Treatment Plant,North River Wastewater Treatment Plant,North River Wastewater Treatment Plant,North River Wastewater Treatment Plant,North River Wastewater Treatment Plant,False
+Peir 98 Con Edison,Hells Kitchen,Hells Kitchen,Peir 98 Con Edison,Peir 98 Con Edison (HELLS KITCHEN),False
+Penn District/Midtown West/ Midtown South,Midtown,Midtown,Penn District/Midtown West/ Midtown South,Penn District/Midtown West/ Midtown South (MIDTOWN),False
+Morningside Heights,Morningside Heights,Morningside Heights,Morningside Heights,Morningside Heights,False
+Murray Hill,Midtown,Midtown East,Murray Hill,Murray Hill (MIDTOWN EAST (MIDTOWN)),False
+NoHo,Greenwich Village,Greenwich Village,NoHo,NoHo (GREENWICH VILLAGE),False
+Nolita,Nolita,Nolita,Nolita,Nolita,False
+NoMad,Midtown,Midtown,NoMad,NoMad (MIDTOWN),False
+NYC Parks Citywide Services Complex,Randall'S Island,Randall'S Island,NYC Parks Citywide Services Complex,NYC Parks Citywide Services Complex (RANDALL'S ISLAND),False
+NYC Sanitation Pier 99,Hells Kitchen,Hells Kitchen,NYC Sanitation Pier 99,NYC Sanitation Pier 99 (HELLS KITCHEN),False
+Nypd Crc,Randall'S Island,Randall'S Island,Nypd Crc,NYPD CRC (RANDALL'S ISLAND),False
+NYPD Harbor Unit,Randall'S Island,Randall'S Island,NYPD Harbor Unit,NYPD Harbor Unit (RANDALL'S ISLAND),False
+Park Maintenance,Park Maintenance,Park Maintenance,Park Maintenance,Park Maintenance,False
+Randall's Island,Randall's Island,Randall's Island,Randall's Island,Randall's Island,False
+RFK Bridge TBTA Building,Randall'S Island,Randall'S Island,RFK Bridge TBTA Building,RFK Bridge TBTA Building (RANDALL'S ISLAND),False
+Riverside Park North Park Operations Building,Harlem,West Harlem/ Manhattanville,Riverside Park North Park Operations Building,Riverside Park North Park Operations Building (WEST HARLEM/ MANHATTANVILLE(HARLEM)),False
+Rockefeller University,Upper West Side,Lenox Hill,Rockefeller University,Rockefeller University (LENOX HILL(UPPER WEST SIDE),False
+Roosevelt Island,Roosevelt Island,Roosevelt Island,Roosevelt Island,Roosevelt Island,False
+SoHo,SoHo,SoHo,SoHo,SoHo,False
+Restricted Area,Governors Island,Governors Island,Restricted Area,Restricted Area (GOVERNORS ISLAND),False
+Stuyvesant Town/Peter Cooper Village,Stuyvesant Town/Peter Cooper Village,Stuyvesant Town/Peter Cooper Village,Stuyvesant Town/Peter Cooper Village,Stuyvesant Town/Peter Cooper Village,False
+Sugar Hill,Harlem,Harlem,Sugar Hill,Sugar Hill (HARLEM),False
+Sutton Place,Midtown,Midtown East,Sutton Place,Sutton Place (MIDTOWN EAST (MIDTOWN)),False
+Theater District,Midtown,Midtown,Theater District,Theater District (MIDTOWN),False
+Tribeca,Tribeca,Tribeca,Tribeca,Tribeca,False
+Turtle Bay,Midtown,Midtown East,Turtle Bay,Turtle Bay (MIDTOWN EAST (MIDTOWN)),False
+Two Bridges,Lower East Side,Lower East Side,Two Bridges,Two Bridges (LOWER EAST SIDE),False
+United Nations,Midtown,Turtle Bay,United Nations,United Nations (TURTLE BAY(MIDTOWN EAST(MIDTOWN))),False
+Upper East Side,Upper East Side,Upper East Side,Upper East Side,Upper East Side,False
+Upper West Side,Upper West Side,Upper West Side,Upper West Side,Upper West Side,False
+Wards Island Wastewater Treatment Plant,Randall'S Island,Randall'S Island,Wards Island Wastewater Treatment Plant,Wards Island Wastewater Treatment Plant (RANDALL'S ISLAND),False
+West Harlem/ Manhattanville,Harlem,Harlem,West Harlem/ Manhattanville,West Harlem/ Manhattanville (HARLEM),False
+West Village,Greenwich Village,Greenwich Village,West Village,West Village (GREENWICH VILLAGE),False
+Washington Heights,Washington Heights,Washington Heights,Washington Heights,Washington Heights,False
+Yorkville,Upper East Side,Upper East Side,Yorkville,Yorkville (UPPER EAST SIDE),False
+"Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""","Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""","Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""","Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""","Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""",False
+Allerton,Allerton,Allerton,Allerton,Allerton,False
+MTA Bay Plaza Bus Depot,Eastchester,Baychester,MTA Bay Plaza Bus Depot,MTA Bay Plaza Bus Depot (BAYCHESTER(EASTCHESTER)),False
+Bedford Park,Bedford Park,Bedford Park,Bedford Park,Bedford Park,False
+Belmont,Belmont,Belmont,Belmont,Belmont,False
+Bronx Borough Crews,Bronx Borough Crews,Bronx Borough Crews,Bronx Borough Crews,Bronx Borough Crews,False
+Bronx Community College,University Heights,University Heights,Bronx Community College,Bronx Community College (UNIVERSITY HEIGHTS),False
+Bronx Scrap Metal,Bronx Scrap Metal,Bronx Scrap Metal,Bronx Scrap Metal,Bronx Scrap Metal,False
+Bronx Tow Pound,Bronx Tow Pound,Bronx Tow Pound,Bronx Tow Pound,Bronx Tow Pound,False
+Castle Hill,Castle Hill,Castle Hill,Castle Hill,Castle Hill,False
+City Island,City Island,City Island,City Island,City Island,False
+Classon Point,Classon Point,Classon Point,Classon Point,Classon Point,False
+Claremont,Claremont,Claremont,Claremont,Claremont,False
+Concourse,Concourse,Concourse,Concourse,Concourse,False
+Concourse Village,Concourse,Concourse,Concourse Village,Concourse Village (CONCOURSE),False
+Co-op City,Co-op City,Co-op City,Co-op City,Co-op City,False
+Co-op City Powerplant,Co-Op City,Co-Op City,Co-op City Powerplant,Co-op City Powerplant (CO-OP CITY),False
+Con Edison Van Nest Yard,Van Nest,Van Nest,Con Edison Van Nest Yard,Con Edison Van Nest Yard (VAN NEST),False
+Country Club,Country Club,Country Club,Country Club,Country Club,False
+Crotona Park East,Crotona Park East,Crotona Park East,Crotona Park East,Crotona Park East,False
+Delafield Estates,Riverdale,Riverdale,Delafield Estates,Delafield Estates (RIVERDALE) (GATED COMMUNITY),False
+Eastchester,Eastchester,Eastchester,Eastchester,Eastchester,False
+Edenwald,Edenwald,Edenwald,Edenwald,Edenwald,False
+Edgewater Park,Throgs Neck,Throgs Neck,Edgewater Park,Edgewater Park (THROGS NECK) (GATED COMMUNITY),False
+Ethical Culture Fieldston School,Riverdale,Riverdale,Ethical Culture Fieldston School,Ethical Culture Fieldston School (RIVERDALE),False
+Fed Ex Ground,Castle Hill,Castle Hill,Fed Ex Ground,Fed Ex Ground (CASTLE HILL),False
+Fresh Direct and Fedex Shipping Center,Mott Haven,Port Morris,Fresh Direct and Fedex Shipping Center,Fresh Direct and Fedex Shipping Center (PORT MORRIS(MOTT HAVEN)),False
+Fordham,Fordham,Fordham,Fordham,Fordham,False
+Fordham Heights,Fordham Heights,Fordham Heights,Fordham Heights,Fordham Heights,False
+Fordham Hill,Fordham,Fordham,Fordham Hill,Fordham Hill (FORDHAM) (GATED COMMUNITY),False
+Fordham University,Fordham University,Fordham University,Fordham University,Fordham University,False
+Hart Island,Hart Island,Hart Island,Hart Island,Hart Island,False
+High Island,High Island,High Island,High Island,High Island,False
+Highbridge,Highbridge,Highbridge,Highbridge,Highbridge,False
+Horace Mann School,Riverdale,Riverdale,Horace Mann School,Horace Mann School (RIVERDALE),False
+Hunts Point,Hunts Point,Hunts Point,Hunts Point,Hunts Point,False
+Hunts Point Wastewater Treatment Plant,Hunts Point,Hunts Point,Hunts Point Wastewater Treatment Plant,Hunts Point Wastewater Treatment Plant (HUNTS POINT),False
+Hutchinson Metro Center,Hutchinson Metro Center,Hutchinson Metro Center,Hutchinson Metro Center,Hutchinson Metro Center,False
+Island Point Condos,City Island,City Island,Island Point Condos,Island Point Condos (CITY ISLAND)(GATED COMMUNITY),False
+Jerome Park Reservior,Jerome Park Reservior,Jerome Park Reservior,Jerome Park Reservior,Jerome Park Reservior,False
+Kingsbridge,Kingsbridge,Kingsbridge,Kingsbridge,Kingsbridge,False
+Kingsbridge Heights,Kingsbridge,Kingsbridge,Kingsbridge Heights,Kingsbridge Heights (KINGSBRIDGE),False
+Korea Town,Midtown,Midtown,Korea Town,Korea Town (MIDTOWN),False
+Laconia,Allerton,Allerton,Laconia,Laconia (ALLERTON),False
+Lagoon Estates Condominiums,Throgs Neck,Throgs Neck,Lagoon Estates Condominiums,Lagoon Estates Condominiums (THROGS NECK)(GATED COMMUNITY),False
+Lehman College,Bedford Park,Bedford Park,Lehman College,Lehman College (BEDFORD PARK),False
+Longwood,Longwood,Longwood,Longwood,Longwood,False
+Manhattan Beer Distribution,Hunts Point,Hunts Point,Manhattan Beer Distribution,Manhattan Beer Distribution (HUNTS POINT),False
+Manhattan University,Riverdale,Riverdale,Manhattan University,Manhattan University (RIVERDALE),False
+Melrose,Melrose,Melrose,Melrose,Melrose,False
+Morrisania,Morrisania,Morrisania,Morrisania,Morrisania,False
+Morris Heights,Morris Heights,Morris Heights,Morris Heights,Morris Heights,False
+Morris Park,Morris Park,Morris Park,Morris Park,Morris Park,False
+Mount Eden,Mount Eden,Mount Eden,Mount Eden,Mount Eden,False
+Mount Hope,Mount Hope,Mount Hope,Mount Hope,Mount Hope,False
+MTA Buildings,Hunts Point,Hunts Point,MTA Buildings,MTA Buildings (HUNTS POINT),False
+MTA West Farms Bus Depot,MTA West Farms Bus Depot,MTA West Farms Bus Depot,MTA West Farms Bus Depot,MTA West Farms Bus Depot,False
+MTA Zerega Bus Maintanence and Training Facility,Castle Hill,Castle Hill,MTA Zerega Bus Maintanence and Training Facility,MTA Zerega Bus Maintanence and Training Facility (CASTLE HILL),False
+Navy Reserve Center,Throgs Neck,Throgs Neck,Navy Reserve Center,Navy Reserve Center (THROGS NECK),False
+North Brother Island,North Brother Island,North Brother Island,North Brother Island,North Brother Island,False
+Norwood,Norwood,Norwood,Norwood,Norwood,False
+Outlook Point Condos,Country Club,Country Club,Outlook Point Condos,Outlook Point Condos (COUNTRY CLUB) (GATED COMMUNITY),False
+Parkchester,Parkchester,Parkchester,Parkchester,Parkchester,False
+Pelham Bay,Pelham Bay,Pelham Bay,Pelham Bay,Pelham Bay,False
+Pelham Bay Landfill,Pelham Bay Landfill,Pelham Bay Landfill,Pelham Bay Landfill,Pelham Bay Landfill,False
+Pelham Gardens,Pelham Gardens,Pelham Gardens,Pelham Gardens,Pelham Gardens,False
+Pelham Parkway North/ Bronxwood/ Bronxdale,Pelham Parkway,Pelham Parkway,Pelham Parkway North/ Bronxwood/ Bronxdale,Pelham Parkway North/ Bronxwood/ Bronxdale (PELHAM PARKWAY),False
+Pelham Parkway South,Pelham Parkway,Pelham Parkway,Pelham Parkway South,Pelham Parkway South (PELHAM PARKWAY),False
+Penny Field Estates,Throgs Neck,Throgs Neck,Penny Field Estates,Penny Field Estates (THROGS NECK) (GATED COMMUNITY),False
+Port Morris,Mott Haven,Mott Haven,Port Morris,Port Morris (MOTT HAVEN),False
+Rat Island,Rat Island,Rat Island,Rat Island,Rat Island,False
+Rikers Island,Rikers Island,Rikers Island,Rikers Island,Rikers Island,False
+Riverdale,Riverdale,Riverdale,Riverdale,Riverdale,False
+Riverdale Country School,Riverdale,Riverdale,Riverdale Country School,Riverdale Country School (RIVERDALE),False
+Riverdale Country School Lower School,Riverdale,Riverdale,Riverdale Country School Lower School,Riverdale Country School Lower School (RIVERDALE),False
+Rodman Neck NYPD Firing Range,Rodman Neck NYPD Firing Range,Rodman Neck NYPD Firing Range,Rodman Neck NYPD Firing Range,Rodman Neck NYPD Firing Range,False
+Russian Diplomatic Compound,Riverdale,North Riverdale,Russian Diplomatic Compound,Russian Diplomatic Compound (NORTH RIVERDALE(RIVERDALE)),False
+RW Iron Works,RW Iron Works,RW Iron Works,RW Iron Works,RW Iron Works,False
+Schuylerville,Pelham Bay,Pelham Bay,Schuylerville,Schuylerville (PELHAM BAY),False
+Selby Transportation Corporation,Selby Transportation Corporation,Selby Transportation Corporation,Selby Transportation Corporation,Selby Transportation Corporation,False
+Shelter Cove Estates,Throgs Neck,Edgewaterpark,Shelter Cove Estates,Shelter Cove Estates (EDGEWATERPARK(THROGS NECK)) (GATED COMMUNITY),False
+Shorehaven,Classon Point,Classon Point,Shorehaven,Shorehaven (CLASSON POINT) (GATED COMMUNITY),False
+SNY2- Amazon,SNY2- Amazon,SNY2- Amazon,SNY2- Amazon,SNY2- Amazon,False
+Silver Beach,Throgs Neck,Throgs Neck,Silver Beach,Silver Beach (THROGS NECK) (GATED COMMUNITY),False
+Soundview,Soundview,Soundview,Soundview,Soundview,False
+Spuyten Duyvil,Riverdale,Riverdale,Spuyten Duyvil,Spuyten Duyvil (RIVERDALE),False
+St Joseph's School for the Deaf,Throgs Neck,Throgs Neck,St Joseph's School for the Deaf,St Joseph's School for the Deaf (THROGS NECK),False
+Stratton Park,Stratton Park,Stratton Park,Stratton Park,Stratton Park,False
+Sunrise Marina Estates,Country Club,Country Club,Sunrise Marina Estates,Sunrise Marina Estates (COUNTRY CLUB)(GATED COMMUNITY),False
+Sunset Cove Condominiums,Country Club,Country Club,Sunset Cove Condominiums,Sunset Cove Condominiums (COUNTRY CLUB) (GATED COMMUNITY),False
+Throgs Neck,Throgs Neck,Throgs Neck,Throgs Neck,Throgs Neck,False
+Throgs Neck Bridge Service Building,Throgs Neck,Throgs Neck,Throgs Neck Bridge Service Building,Throgs Neck Bridge Service Building (THROGS NECK),False
+Tremont,Tremont,Tremont,Tremont,Tremont,False
+Unionport,Unionport,Unionport,Unionport,Unionport,False
+University Heights,University Heights,University Heights,University Heights,University Heights,False
+University of Mount Saint Vincent,Riverdale,North Riverdale,University of Mount Saint Vincent,University of Mount Saint Vincent (NORTH RIVERDALE(RIVERDALE)),False
+Van Cortland Village,Kingsbringe,Kingsbridge Heights,Van Cortland Village,Van Cortland Village (KINGSBRIDGE HEIGHTS(KINGSBRINGE)),False
+Van Nest,Van Nest,Van Nest,Van Nest,Van Nest,False
+Villanova Heights,Riverdale,Riverdale,Villanova Heights,Villanova Heights (RIVERDALE) (PRIVATE COMMUNITY),False
+Wakefield,Wakefield,Wakefield,Wakefield,Wakefield,False
+Waterstone Estates,Pelham Bay,Schuylerville,Waterstone Estates,Waterstone Estates (SCHUYLERVILLE(PELHAM BAY)) (GATED COMMUNITY),False
+Bay Front Estates,Mill Basin,Mill Basin,Bay Front Estates,Bay Front Estates (MILL BASIN) (GATED COMMUNITY),False
+Westchester Square,Westchester Square,Westchester Square,Westchester Square,Westchester Square,False
+West Farms,West Farms,West Farms,West Farms,West Farms,False
+Williamsbridge,Williamsbridge,Williamsbridge,Williamsbridge,Williamsbridge,False
+Woodlawn Heights,Woodlawn Heights,Woodlawn Heights,Woodlawn Heights,Woodlawn Heights,False
+WM Harlem River Garbage Transfer Station,Mott Haven,Port Morris,WM Harlem River Garbage Transfer Station,WM Harlem River Garbage Transfer Station (PORT MORRIS(MOTT HAVEN)),False
+Bridge View On The Water,Castle Hill,Castle Hill,Bridge View On The Water,Bridge View On The Water (CASTLE HILL) (GATED COMMUNITY),False
+name unknown for now,City Island,City Island,name unknown for now,(name unknown for now) (CITY ISLAND) (GATED COMMUNITY),False
+name unknown for now,City Island,City Island,name unknown for now,(name unknown for now) (CITY ISLAND) (GATED COMMUNITY),False
+name unknown for now,Riverdale,Riverdale,name unknown for now,(name unknown for now)(GATED COMMUNITY)(RIVERDALE),False
+Abandoned Brooklyn Developmental Center,Spring Creek,East New York,Abandoned Brooklyn Developmental Center,Abandoned Brooklyn Developmental Center (SPRING CREEK)EAST NEW YORK)),False
+Abandoned DSNY Pier,Sunset Park,Sunset Park,Abandoned DSNY Pier,Abandoned DSNY Pier (SUNSET PARK),False
+Abandoned Naval Hospital Annex,Brooklyn Navy Yard,Brooklyn Navy Yard,Abandoned Naval Hospital Annex,Abandoned Naval Hospital Annex (BROOKLYN NAVY YARD),False
+Alex's Meat Processing,Sunset Park,Sunset Park,Alex's Meat Processing,Alex's Meat Processing (SUNSET PARK),False
+Bath Beach,Bath Beach,Bath Beach,Bath Beach,Bath Beach,False
+Bay Ridge,Bay Ridge,Bay Ridge,Bay Ridge,Bay Ridge,False
+Bed-Stuy,Bed-Stuy,Bed-Stuy,Bed-Stuy,Bed-Stuy,False
+Bensonhurst,Bensonhurst,Bensonhurst,Bensonhurst,Bensonhurst,False
+Bergen Beach,Bergen Beach,Bergen Beach,Bergen Beach,Bergen Beach,False
+Boerum Hill,Boerum Hill,Boerum Hill,Boerum Hill,Boerum Hill,False
+Borough Park,Borough Park,Borough Park,Borough Park,Borough Park,False
+Brighton Beach,Brighton Beach,Brighton Beach,Brighton Beach,Brighton Beach,False
+Brooklyn Cruise Terminal,Red Hook,Red Hook,Brooklyn Cruise Terminal,Brooklyn Cruise Terminal (RED HOOK),False
+Brooklyn College,Flatbush,Flatbush,Brooklyn College,Brooklyn College (FLATBUSH),False
+Brooklyn Heights,Brooklyn Heights,Brooklyn Heights,Brooklyn Heights,Brooklyn Heights,False
+Brooklyn Marine Terminal,Brooklyn Marine Terminal,Brooklyn Marine Terminal,Brooklyn Marine Terminal,Brooklyn Marine Terminal,False
+Brooklyn Navy Yard,Brooklyn Navy Yard,Brooklyn Navy Yard,Brooklyn Navy Yard,Brooklyn Navy Yard,False
+Brownsville,Brownsville,Brownsville,Brownsville,Brownsville,False
+Bushwick,Bushwick,Bushwick,Bushwick,Bushwick,False
+Canarsie,Canarsie,Canarsie,Canarsie,Canarsie,False
+Carroll Gardens,Carroll Gardens,Carroll Gardens,Carroll Gardens,Carroll Gardens,False
+Charter Communications,Greenpoint,Greenpoint,Charter Communications,Charter Communications (GREENPOINT),False
+Astoria Generating Company LP,Sunset Park,Sunset Park,Astoria Generating Company LP,Astoria Generating Company LP (SUNSET PARK),False
+Clinton Hill,Clinton Hill,Clinton Hill,Clinton Hill,Clinton Hill,False
+Cobble Hill,Cobble Hill,Cobble Hill,Cobble Hill,Cobble Hill,False
+Cocacola Distribution Center,Hunts Point,Hunts Point,Cocacola Distribution Center,Cocacola Distribution Center (HUNTS POINT),False
+Columbia Street Waterfront District,Columbia Street Waterfront District,Columbia Street Waterfront District,Columbia Street Waterfront District,Columbia Street Waterfront District,False
+Con Edison Farragut Substation,Vinegar Hill,Vinegar Hill,Con Edison Farragut Substation,Con Edison Farragut Substation (VINEGAR HILL),False
+Coney Island,Coney Island,Coney Island,Coney Island,Coney Island,False
+Coney Island Wastewater Treatment Plant,Sheepshead Bay,Sheepshead Bay,Coney Island Wastewater Treatment Plant,Coney Island Wastewater Treatment Plant (SHEEPSHEAD BAY),False
+Crown Heights,Crown Heights,Crown Heights,Crown Heights,Crown Heights,False
+DAB5 Amazon,Red Hook,Red Hook,DAB5 Amazon,DAB5 Amazon (RED HOOK),False
+Downtown Brooklyn,Downtown Brooklyn,Downtown Brooklyn,Downtown Brooklyn,Downtown Brooklyn,False
+DOT and NYPD Highway Patrol Unit 2,DOT and NYPD Highway Patrol Unit 2,DOT and NYPD Highway Patrol Unit 2,DOT and NYPD Highway Patrol Unit 2,DOT and NYPD Highway Patrol Unit 2,False
+DOT Hamilton Ave Asphalt Plant,Sunset Park,Sunset Park,DOT Hamilton Ave Asphalt Plant,DOT Hamilton Ave Asphalt Plant (SUNSET PARK),False
+DSNY and Cooper Recycling,Williamsburg,East Williamsburg,DSNY and Cooper Recycling,DSNY and Cooper Recycling (EAST WILLIAMSBURG)(WILLIAMSBURG)),False
+DSNY Storage Yard,Greenpoint,Greenpoint,DSNY Storage Yard,DSNY Storage Yard (GREENPOINT),False
+DSNY Municipal Solid Waste Facility,Sunset Park,Sunset Park,DSNY Municipal Solid Waste Facility,DSNY Municipal Solid Waste Facility (SUNSET PARK),False
+Dumbo,Dumbo,Dumbo,Dumbo,DUMBO,False
+Dyker Heights,Dyker Heights,Dyker Heights,Dyker Heights,Dyker Heights,False
+East Flatbush,East Flatbush,East Flatbush,East Flatbush,East Flatbush,False
+East New York,East New York,East New York,East New York,East New York,False
+Empire Merchants,Greenpoint,Greenpoint,Empire Merchants,Empire Merchants (GREENPOINT),False
+Erie Basin NYPD Impound Lot,Redhook,Redhook,Erie Basin NYPD Impound Lot,Erie Basin NYPD Impound Lot (REDHOOK),False
+Exon Mobile Parking,Greenpoint,Greenpoint,Exon Mobile Parking,Exon Mobile Parking (GREENPOINT),False
+Flatbush,Flatbush,Flatbush,Flatbush,Flatbush,False
+Flatlands,Flatlands,Flatlands,Flatlands,Flatlands,False
+Fort Greene,Fort Greene,Fort Greene,Fort Greene,Fort Greene,False
+Fort Hamilton,Bay Ridge,Bay Ridge,Fort Hamilton,Fort Hamilton (BAY RIDGE),False
+Fort Hamilton Military Base,Fort Hamilton Military Base,Fort Hamilton Military Base,Fort Hamilton Military Base,Fort Hamilton Military Base,False
+Gateway Center,Spring Creek,East New York,Gateway Center,Gateway Center (SPRING CREEK)EAST NEW YORK)),False
+GBX Gowanus Bay Terminal,Red Hook,Red Hook,GBX Gowanus Bay Terminal,GBX Gowanus Bay Terminal (RED HOOK),False
+Georgetown,Bergen Beach,Bergen Beach,Georgetown,Georgetown (BERGEN BEACH),False
+Gerritsen Beach,Gerritsen Beach,Gerritsen Beach,Gerritsen Beach,Gerritsen Beach,False
+GMD Ship Repair,Brooklyn Navy Yard,Brooklyn Navy Yard,GMD Ship Repair,GMD Ship Repair (BROOKLYN NAVY YARD),False
+Gowanus,Gowanus,Gowanus,Gowanus,Gowanus,False
+Gravesend,Gravesend,Gravesend,Gravesend,Gravesend,False
+Greenpoint,Greenpoint,Greenpoint,Greenpoint,Greenpoint,False
+Kensington,Kensington,Kensington,Kensington,Kensington,False
+Kinder Morgan Energy Terminal,Greenpoint,Greenpoint,Kinder Morgan Energy Terminal,Kinder Morgan Energy Terminal (GREENPOINT),False
+Kingsborough Community College,Manhattan Beach,Manhattan Beach,Kingsborough Community College,Kingsborough Community College (MANHATTAN BEACH),False
+Long Island University,Long Island University,Long Island University,Long Island University,Long Island University,False
+Manhattan Beach,Manhattan Beach,Manhattan Beach,Manhattan Beach,Manhattan Beach,False
+Mapleton,Bensonhurst,Bensonhurst,Mapleton,Mapleton (Bensonhurst),False
+Marine Park,Marine Park,Marine Park,Marine Park,Marine Park,False
+Menorah Center MJHS,Manhattan Beach,Manhattan Beach,Menorah Center MJHS,Menorah Center MJHS (MANHATTAN BEACH),False
+Midwood,Midwood,Midwood,Midwood,Midwood,False
+Mill Basin,Mill Basin,Mill Basin,Mill Basin,Mill Basin,False
+Mott Haven,Mott Haven,Mott Haven,Mott Haven,Mott Haven,False
+MTA Flatbush Bus Depot,MTA Flatbush Bus Depot,MTA Flatbush Bus Depot,MTA Flatbush Bus Depot,MTA Flatbush Bus Depot,False
+MTA Spring Creek Bus Depot,East New York,East New York,MTA Spring Creek Bus Depot,MTA Spring Creek Bus Depot (EAST NEW YORK),False
+National Grid Depot,Williamsburg,East Williamsburg,National Grid Depot,National Grid Depot (EAST WILLIAMSBURG)(WILLIAMSBURG)),False
+Newton Creek Wastewater Treatment Plant,Greenpoint,Greenpoint,Newton Creek Wastewater Treatment Plant,Newton Creek Wastewater Treatment Plant (GREENPOINT),False
+NYC Ferry Homeport Pier C,Brooklyn Navy Yard,Brooklyn Navy Yard,NYC Ferry Homeport Pier C,NYC Ferry Homeport Pier C (BROOKLYN NAVY YARD),False
+"NYC Sanitation Department Garage 9,10,11",Castle Hill,Castle Hill,"NYC Sanitation Department Garage 9,10,11","NYC Sanitation Department Garage 9,10,11 (CASTLE HILL)",False
+NYPD and DSNY Training Facility,Floyd Bennet Field,Floyd Bennet Field,NYPD and DSNY Training Facility,NYPD and DSNY Training Facility (FLOYD BENNET FIELD),False
+Oceana,Brighton Beach,Brighton Beach,Oceana,Oceana (BRIGHTON BEACH) (GATED COMMUNITY),False
+NYPD Harbour Unit,Sunset Park,Sunset Park,NYPD Harbour Unit,NYPD Harbour Unit (SUNSET PARK),False
+Ocean Hill Bed-Stuy,Bed-Stuy,Bed-Stuy,Ocean Hill Bed-Stuy,Ocean Hill Bed-Stuy (BED-STUY),False
+Ocean Hill Brownsville,Brownsville,Brownsville,Ocean Hill Brownsville,Ocean Hill Brownsville (BROWNSVILLE),False
+Old Mill Basin,Mill Basin,Mill Basin,Old Mill Basin,Old Mill Basin (MILL BASIN),False
+Owls Head Wastewater Treatment Plant,Owls Head Wastewater Treatment Plant,Owls Head Wastewater Treatment Plant,Owls Head Wastewater Treatment Plant,Owls Head Wastewater Treatment Plant,False
+Ozone Park Carrier Annex- Post Office,East New York,East New York,Ozone Park Carrier Annex- Post Office,Ozone Park Carrier Annex- Post Office (EAST NEW YORK),False
+Park Slope,Park Slope,Park Slope,Park Slope,Park Slope,False
+Pier K,Brooklyn Navy Yard,Brooklyn Navy Yard,Pier K,Pier K (BROOKLYN NAVY YARD),False
+Park Maintenance,Park Maintenance,Park Maintenance,Park Maintenance,Park Maintenance,False
+Pratt Institute,Clinton Hill,Clinton Hill,Pratt Institute,Pratt Institute (CLINTON HILL),False
+Truck Parking Lot,Greenpoint,Greenpoint,Truck Parking Lot,Truck Parking Lot (GREENPOINT),False
+Prospect Heights,Prospect Heights,Prospect Heights,Prospect Heights,Prospect Heights,False
+Prospect Lefforts Gardens,Flatbush,Flatbush,Prospect Lefforts Gardens,Prospect Lefforts Gardens (FLATBUSH),False
+Prospect Park South,Flatbush,Flatbush,Prospect Park South,Prospect Park South (FLATBUSH),False
+Quaker Cemetary,Quaker Cemetary,Quaker Cemetary,Quaker Cemetary,Quaker Cemetary,False
+Red Hook,Red Hook,Red Hook,Red Hook,Red Hook,False
+Red Hook Wastewater Treatment Plant,Brooklyn Navy Yard,Brooklyn Navy Yard,Red Hook Wastewater Treatment Plant,Red Hook Wastewater Treatment Plant (BROOKLYN NAVY YARD),False
+Restricted Area,Brooklyn Navy Yard,Brooklyn Navy Yard,Restricted Area,Restricted Area (BROOKLYN NAVY YARD),False
+Sea Gate,Sea Gate,Sea Gate,Sea Gate,Sea Gate (GATED COMMUNITY),False
+Sheepshead Bay,Sheepshead Bay,Sheepshead Bay,Sheepshead Bay,Sheepshead Bay,False
+South Brooklyn Marine Terminal,Sunset Park,Sunset Park,South Brooklyn Marine Terminal,South Brooklyn Marine Terminal (SUNSET PARK),False
+South Slope,Park Slope,Park Slope,South Slope,South Slope (PARK SLOPE),False
+Spring Creek,East New York,East New York,Spring Creek,Spring Creek (EAST NEW YORK),False
+Spring Creek Auxiliary Water Pollution Control Plant,Spring Creek,East New York,Spring Creek Auxiliary Water Pollution Control Plant,Spring Creek Auxiliary Water Pollution Control Plant (SPRING CREEK)EAST NEW YORK)),False
+Steiner Studios,Brooklyn Navy Yard,Brooklyn Navy Yard,Steiner Studios,Steiner Studios (BROOKLYN NAVY YARD),False
+Starret City,East New York,East New York,Starret City,Starret City (EAST NEW YORK),False
+Sunoco Brooklyn Terminal,Greenpoint,Greenpoint,Sunoco Brooklyn Terminal,Sunoco Brooklyn Terminal (GREENPOINT),False
+Sunset Industrial Park,Sunset Park,Sunset Park,Sunset Industrial Park,Sunset Industrial Park (SUNSET PARK),False
+Sunset Park,Sunset Park,Sunset Park,Sunset Park,Sunset Park,False
+United Metro Energy Corp,Greenpoint,Greenpoint,United Metro Energy Corp,United Metro Energy Corp (GREENPOINT),False
+US Marine Corps Reserve Center,Floyd Bennet Field,Floyd Bennet Field,US Marine Corps Reserve Center,US Marine Corps Reserve Center (FLOYD BENNET FIELD),False
+Vinegar Hill,Vinegar Hill,Vinegar Hill,Vinegar Hill,Vinegar Hill,False
+Weeksville,Crown Heights,Crown Heights,Weeksville,Weeksville (CROWN HEIGHTS),False
+Williamsburg,Williamsburg,Williamsburg,Williamsburg,Williamsburg,False
+Windsor Terrace,Windsor Terrace,Windsor Terrace,Windsor Terrace,Windsor Terrace,False
+26th Ward Wastewater Treatment Plant,East New York,East New York,26th Ward Wastewater Treatment Plant,26th Ward Wastewater Treatment Plant (EAST NEW YORK),False
+Abandoned New York Architectural Terra Cotta Works,Long Island City,Long Island City,Abandoned New York Architectural Terra Cotta Works,Abandoned New York Architectural Terra Cotta Works (LONG ISLAND CITY),False
+Aquaduct Racetrack,Aquaduct Racetrack,Aquaduct Racetrack,Aquaduct Racetrack,Aquaduct Racetrack,False
+Arverne,Arverne,Arverne,Arverne,Arverne,False
+Arverne By The Sea,Arverne,Arverne,Arverne By The Sea,Arverne By The Sea (ARVERNE),False
+Astoria,Astoria,Astoria,Astoria,Astoria,False
+Astoria Energy,Astoria,Astoria,Astoria Energy,Astoria Energy (ASTORIA),False
+Bay Park Estates,College Point,College Point,Bay Park Estates,Bay Park Estates (COLLEGE POINT)(GATED COMMUNITY),False
+Bayside,Bayside,Bayside,Bayside,Bayside,False
+Bay Terrace,Bayside,Bayside,Bay Terrace,Bay Terrace (BAYSIDE),False
+Baybridge Condos,Bayside,Bay Terrace,Baybridge Condos,Baybridge Condos ((BAY TERRACE)(BAYSIDE) (GATED COMMUNITY),False
+Bayside Gables,Bayside,Bayside,Bayside Gables,Bayside Gables (BAYSIDE) (GATED COMMUNITY),False
+Bayside Hills,Bayside,Bayside,Bayside Hills,Bayside Hills (BAYSIDE),False
+Bayswater Peaking Facility,Bayswater,Bayswater,Bayswater Peaking Facility,Bayswater Peaking Facility (BAYSWATER),False
+Bayswater,Bayswater,Bayswater,Bayswater,Bayswater,False
+Beechhurst Shores at Riverside Drive,Beechhurst,Whitestone,Beechhurst Shores at Riverside Drive,Beechhurst Shores at Riverside Drive (BEECHHURST)WHITESTONE))(GATED COMMUNITY),False
+Belle Harbor,Belle Harbor,Belle Harbor,Belle Harbor,Belle Harbor,False
+Bellerose,Bellerose,Bellerose,Bellerose,Bellerose,False
+Breezy Point,Breezy Point,Breezy Point,Breezy Point,Breezy Point (GATED COMMUNITY),False
+Briarwood,Briarwood,Briarwood,Briarwood,Briarwood,False
+Broad Channel,Broad Channel,Broad Channel,Broad Channel,Broad Channel,False
+Bronx BIT,Bronx BIT,Bronx BIT,Bronx BIT,Bronx BIT,False
+Bowery Bay Wastewater Treatment Plant,Astoria,Astoria,Bowery Bay Wastewater Treatment Plant,Bowery Bay Wastewater Treatment Plant (ASTORIA),False
+Channel View School for Research,Rockaway Beach,Rockaway Beach,Channel View School for Research,Channel View School for Research (ROCKAWAY BEACH),False
+Cambria Heights,Cambria Heights,Cambria Heights,Cambria Heights,Cambria Heights,False
+College Point Shopping Center,College Point Shopping Center,College Point Shopping Center,College Point Shopping Center,College Point Shopping Center,False
+College Point,College Point,College Point,College Point,College Point,False
+Country Point,Bellerose,Bellerose,Country Point,Country Point (BELLEROSE) (GATED COMMUNITY),False
+Con Edison Astoria,Astoria,Astoria,Con Edison Astoria,Con Edison Astoria (ASTORIA),False
+Con Edison LIC Substationn,Long Island City,Long Island City,Con Edison LIC Substationn,Con Edison LIC Substationn (LONG ISLAND CITY),False
+Creedmore Psychiatric Center,Bellerose,Bellerose,Creedmore Psychiatric Center,Creedmore Psychiatric Center (BELLEROSE),False
+Corona,Corona,Corona,Corona,Corona,False
+Ditmars Steinway,Astoria,Astoria,Ditmars Steinway,Ditmars Steinway (ASTORIA),False
+Douglaston,Douglaston,Douglaston,Douglaston,Douglaston,False
+Douglaston Manor,Douglaston,Douglaston,Douglaston Manor,Douglaston Manor (DOUGLASTON),False
+DOT Harper St. Yard,Willets Point,Willets Point,DOT Harper St. Yard,DOT Harper St. Yard (WILLETS POINT),False
+DSNY Q14 Garage,Edgemere,Edgemere,DSNY Q14 Garage,DSNY Q14 Garage (EDGEMERE),False
+DSNY Queens East 11 13A Garage,DSNY Queens East 11 13A Garage,DSNY Queens East 11 13A Garage,DSNY Queens East 11 13A Garage,DSNY Queens East 11 13A Garage,False
+East Elmhurst,East Elmhurst,East Elmhurst,East Elmhurst,East Elmhurst,False
+Edgemere,Edgemere,Edgemere,Edgemere,Edgemere,False
+Edgewater Buisseness Park,College Point,College Point,Edgewater Buisseness Park,Edgewater Buisseness Park (COLLEGE POINT),False
+Edgewater Estates,College Point,College Point,Edgewater Estates,Edgewater Estates (COLLEGE POINT) (PRIVATE COMMUNITY),False
+Elmhurst,Elmhurst,Elmhurst,Elmhurst,Elmhurst,False
+Fedex Ground,Maspeth,Maspeth,Fedex Ground,Fedex Ground (MASPETH),False
+Far Rockaway,Far Rockaway,Far Rockaway,Far Rockaway,Far Rockaway,False
+Floral Park,Floral Park,Floral Park,Floral Park,Floral Park,False
+Forest Hills,Forest Hills,Forest Hills,Forest Hills,Forest Hills,False
+Forest Hills Gardens,Forest Hills Gardens,Forest Hills Gardens,Forest Hills Gardens,Forest Hills Gardens,False
+Forest Park Shop,Forest Park Shop,Forest Park Shop,Forest Park Shop,Forest Park Shop,False
+Fresh Meadows,Fresh Meadows,Fresh Meadows,Fresh Meadows,Fresh Meadows,False
+Flushing,Flushing,Flushing,Flushing,Flushing,False
+Flushing Asphalt LLC,College Point,College Point,Flushing Asphalt LLC,Flushing Asphalt LLC (COLLEGE POINT),False
+Glen Oaks,Glen Oaks,Glen Oaks,Glen Oaks,Glen Oaks,False
+Glendale,Glendale,Glendale,Glendale,Glendale,False
+Hollis,Hollis,Hollis,Hollis,Hollis,False
+Hollis Hills,Hollis Hills,Hollis Hills,Hollis Hills,Hollis Hills,False
+Holliswood,Holliswood,Holliswood,Holliswood,Holliswood,False
+International Union of Operating Engineers School,International Union of Operating Engineers School,International Union of Operating Engineers School,International Union of Operating Engineers School,International Union of Operating Engineers School,False
+Howard Beach,Howard Beach,Howard Beach,Howard Beach,Howard Beach,False
+Jackson Heights,Jackson Heights,Jackson Heights,Jackson Heights,Jackson Heights,False
+Jamaica,Jamaica,Jamaica,Jamaica,Jamaica,False
+Jamaica Estates,Jamaica Estates,Jamaica Estates,Jamaica Estates,Jamaica Estates,False
+Jamaica Hills,Jamaica Hills,Jamaica Hills,Jamaica Hills,Jamaica Hills,False
+Jamaica Wastewater Treatment Plant,Jamaica Wastewater Treatment Plant,Jamaica Wastewater Treatment Plant,Jamaica Wastewater Treatment Plant,Jamaica Wastewater Treatment Plant,False
+JFK Airport,JFK Airport,JFK Airport,JFK Airport,JFK Airport,False
+JFK Airport Restricted Area,JFK Airport Restricted Area,JFK Airport Restricted Area,JFK Airport Restricted Area,JFK Airport Restricted Area,False
+Kaufman Astoria Studios,Astoria,Astoria,Kaufman Astoria Studios,Kaufman Astoria Studios (ASTORIA),False
+Kew Gardens,Kew Gardens,Kew Gardens,Kew Gardens,Kew Gardens,False
+Kew Gardens Hills,Kew Gardens Hills,Kew Gardens Hills,Kew Gardens Hills,Kew Gardens Hills,False
+Laguardia Airport,Laguardia Airport,Laguardia Airport,Laguardia Airport,Laguardia Airport,False
+Laguardia Airport Restricted Area,Laguardia Airport Restricted Area,Laguardia Airport Restricted Area,Laguardia Airport Restricted Area,Laguardia Airport Restricted Area,False
+LGA Discount Parking,Astoria,Ditmars Steinway,LGA Discount Parking,LGA Discount Parking (DITMARS STEINWAY(ASTORIA)),False
+Laurelton,Laurelton,Laurelton,Laurelton,Laurelton,False
+Linden Hill,Flushing,Flushing,Linden Hill,Linden Hill (FLUSHING),False
+Lindenwood,Howard Beach,Howard Beach,Lindenwood,Lindenwood (HOWARD BEACH),False
+Little Neck,Little Neck,Little Neck,Little Neck,Little Neck,False
+Long Island City,Long Island City,Long Island City,Long Island City,Long Island City,False
+Maspeth,Maspeth,Maspeth,Maspeth,Maspeth,False
+Meadowmere,Meadowmere,Meadowmere,Meadowmere,Meadowmere,False
+Middle Village,Middle Village,Middle Village,Middle Village,Middle Village,False
+MTA Baisley Pond Bus Depot,MTA Baisley Pond Bus Depot,MTA Baisley Pond Bus Depot,MTA Baisley Pond Bus Depot,MTA Baisley Pond Bus Depot,False
+MTA College Point Bus Depot,College Point,College Point,MTA College Point Bus Depot,MTA College Point Bus Depot (COLLEGE POINT),False
+MTA JFK Bus Depot,Springfield Gardens,Brookville,MTA JFK Bus Depot,MTA JFK Bus Depot (BROOKVILLE(SPRINGFIELD GARDENS)),False
+MTA Queens Village Bus Depot,Queens Village,Queens Village,MTA Queens Village Bus Depot,MTA Queens Village Bus Depot (QUEENS VILLAGE),False
+Neponsit,Neponsit,Neponsit,Neponsit,Neponsit,False
+New York Times Distribution,College Point,College Point,New York Times Distribution,New York Times Distribution (COLLEGE POINT),False
+New Hyde Park,Floral Park,Floral Park,New Hyde Park,New Hyde Park (FLORAL PARK),False
+North Shore Marine Transfer,College Point,College Point,North Shore Marine Transfer,North Shore Marine Transfer (COLLEGE POINT),False
+North Corona,Corona,Corona,North Corona,North Corona (CORONA),False
+North Shore Towers,North Shore Towers,North Shore Towers,North Shore Towers,North Shore Towers (GATED COMMUNITY),False
+Oakland Gardens,Bayside,Bayside,Oakland Gardens,Oakland Gardens (BAYSIDE),False
+Oak Park,Douglaston,Douglaston,Oak Park,Oak Park (DOUGLASTON) (GATED COMMUNITY),False
+Old Howard Beach,Howard Beach,Howard Beach,Old Howard Beach,Old Howard Beach (HOWARD BEACH),False
+Ozone Park,Ozone Park,Ozone Park,Ozone Park,Ozone Park,False
+Park Maintenance,Park Maintenance,Park Maintenance,Park Maintenance,Park Maintenance,False
+Parkway Village,Kew Gardens Hills,Kew Gardens Hills,Parkway Village,Parkway Village (KEW GARDENS HILLS) (PRIVATE COMMUNITY),False
+Pepsi Cola Bottling Plant,College Point,College Point,Pepsi Cola Bottling Plant,Pepsi Cola Bottling Plant (COLLEGE POINT),False
+Queens College,Queens College,Queens College,Queens College,Queens College,False
+Precision Gear,College Point,College Point,Precision Gear,Precision Gear (COLLEGE POINT),False
+Queens Village,Queens Village,Queens Village,Queens Village,Queens Village,False
+Queensborough Community College,Bayside,Bayside,Queensborough Community College,Queensborough Community College (BAYSIDE),False
+Queensboro Hill,Flushing,Flushing,Queensboro Hill,Queensboro Hill (FLUSHING),False
+Racetrack & Stables,Aquaduct Racetrack,Aquaduct Racetrack,Racetrack & Stables,Racetrack & Stables (AQUADUCT RACETRACK),False
+"""Big Allis"" Ravenswood Generating Station",Long Island City,Long Island City,"""Big Allis"" Ravenswood Generating Station","""Big Allis"" Ravenswood Generating Station (LONG ISLAND CITY)",False
+Rego Park,Rego Park,Rego Park,Rego Park,Rego Park,False
+Richmond Hill,Richmond Hill,Richmond Hill,Richmond Hill,Richmond Hill,False
+Ridgewood,Ridgewood,Ridgewood,Ridgewood,Ridgewood,False
+Rivers Edge at Powell Cove Estates,College Point,College Point,Rivers Edge at Powell Cove Estates,Rivers Edge at Powell Cove Estates (COLLEGE POINT) (GATED COMMMUNITY),False
+Riverside Estates At Beachhurst Shores,Beechhurst,Whitestone,Riverside Estates At Beachhurst Shores,Riverside Estates At Beachhurst Shores (BEECHHURST)WHITESTONE))(GATED COMMUNITY),False
+Rockaway Beach,Rockaway Beach,Rockaway Beach,Rockaway Beach,Rockaway Beach,False
+Rockaway Park,Rockaway Park,Rockaway Park,Rockaway Park,Rockaway Park,False
+Rockaway Wastewater Resource Recovery Facility,Rockaway Beach,Rockaway Beach,Rockaway Wastewater Resource Recovery Facility,Rockaway Wastewater Resource Recovery Facility (ROCKAWAY BEACH),False
+Rockaway Point,Breezy Point,Breezy Point,Rockaway Point,Rockaway Point (BREEZY POINT) (GATED COMMUNITY),False
+Rosedale,Rosedale,Rosedale,Rosedale,Rosedale,False
+Royal Ranch,Glen Oaks,Glen Oaks,Royal Ranch,Royal Ranch (GLEN OAKS),False
+Roxbury,Breezy Point,Breezy Point,Roxbury,Roxbury (BREEZY POINT) (GATED COMMUNITY),False
+Soundview Pointe,College Point,College Point,Soundview Pointe,Soundview Pointe (COLLEGE POINT) (PRIVATE COMMUNITY),False
+South Jamaica,Jamaica,Jamaica,South Jamaica,South Jamaica (JAMAICA),False
+South Ozone Park,Ozone Park,Ozone Park,South Ozone Park,South Ozone Park (OZONE PARK),False
+"South, South Ozone Park",South Ozone Park,Ozone Park,"South, South Ozone Park","South, South Ozone Park (SOUTH OZONE PARK) OZONE PARK))",False
+South Richmond Hill,Richmond Hill,Richmond Hill,South Richmond Hill,South Richmond Hill (RICHMOND HILL),False
+SRM Concrete,College Point,College Point,SRM Concrete,SRM Concrete (COLLEGE POINT),False
+Springfield Gardens,Springfield Gardens,Springfield Gardens,Springfield Gardens,Springfield Gardens,False
+St. John's University,St. John's University,St. John's University,St. John's University,St. John's University,False
+St. Albans,St. Albans,St. Albans,St. Albans,St. Albans,False
+Sunnyside,Sunnyside,Sunnyside,Sunnyside,Sunnyside,False
+Tallman Island Wastewater Treatment Plant,College Point,College Point,Tallman Island Wastewater Treatment Plant,Tallman Island Wastewater Treatment Plant (COLLEGE POINT),False
+The Maple Glen,Douglaston,Douglaston,The Maple Glen,The Maple Glen (DOUGLASTON),False
+Tropicana/Pepsico Distribution Center,Whitestone,Whitestone,Tropicana/Pepsico Distribution Center,Tropicana/Pepsico Distribution Center (WHITESTONE),False
+US Federal Aviation Administration,Springfield Gardens,Brookvile,US Federal Aviation Administration,US Federal Aviation Administration (BROOKVILE(SPRINGFIELD GARDENS)),False
+USPS Queens Processing & Distribution Center,College Point,College Point,USPS Queens Processing & Distribution Center,USPS Queens Processing & Distribution Center (COLLEGE POINT),False
+Sunnyside Gardens,Sunnyside,Sunnyside,Sunnyside Gardens,Sunnyside Gardens (SUNNYSIDE),False
+Utopia,Fresh Meadows,Fresh Meadows,Utopia,Utopia (FRESH MEADOWS),False
+Whitestone,Whitestone,Whitestone,Whitestone,Whitestone,False
+Wildflower Estates,Beechhurst,Whitestone,Wildflower Estates,Wildflower Estates (BEECHHURST)WHITESTONE))(GATED COMMUNITY),False
+Willets Point,Willets Point,Willets Point,Willets Point,Willets Point,False
+Woodhaven,Woodhaven,Woodhaven,Woodhaven,Woodhaven,False
+Woodside,Woodside,Woodside,Woodside,Woodside,False
+The Hole,The Hole,The Hole,The Hole,The Hole,False
+Marble Hill,Marble Hill,Marble Hill,Marble Hill,Marble Hill,False
+Meatpacking District,Greenwich Village,West Village,Meatpacking District,Meatpacking District (WEST VILLAGE(GREENWICH VILLAGE)),False
+Carnegie Hill,Upper East Side,Upper East Side,Carnegie Hill,Carnegie Hill (UPPER EAST SIDE),False
+Lenox Hill,Upper East Side,Upper East Side,Lenox Hill,Lenox Hill (UPPER EAST SIDE),False
+Ditmas Park,Flatbush,Flatbush,Ditmas Park,Ditmas Park (FLATBUSH),False
+Homecrest,Midwood,Midwood,Homecrest,Homecrest (MIDWOOD),False
+Cypress Hills,East New York,East New York,Cypress Hills,Cypress Hills (EAST NEW YORK),False
+Baychester,Eastchester,Eastchester,Baychester,Baychester (EASTCHESTER),False
+Bay Plaza Mall/ Bartow Mall,Co-Op City,Co-Op City,Bay Plaza Mall/ Bartow Mall,Bay Plaza Mall/ Bartow Mall (CO-OP CITY),False
+Charlotte Gardens,Crotona Park East,Crotona Park East,Charlotte Gardens,Charlotte Gardens (CROTONA PARK EAST),False
+Fieldston,Riverdale,Riverdale,Fieldston,Fieldston (RIVERDALE),False
+Foxhurst,Longwood,Longwood,Foxhurst,Foxhurst (LONGWOOD),False
+Indian Village,Morris Park,Morris Park,Indian Village,Indian Village (MORRIS PARK),False
+Little Yemen,Van Nest,Van Nest,Little Yemen,Little Yemen (VAN NEST),False
+North Riverdale,Riverdale,Riverdale,North Riverdale,North Riverdale (RIVERDALE),False
+Locust Point,Throgs Neck,Throgs Neck,Locust Point,Locust Point (THROGS NECK),False
+City Line,East New York,Cypress Hills,City Line,City Line (CYPRESS HILLS(EAST NEW YORK)),False
+Greenwood Heights,Sunset Park,Sunset Park,Greenwood Heights,Greenwood Heights (SUNSET PARK),False
+Hamilton Beach,Howard Beach,Howard Beach,Hamilton Beach,Hamilton Beach (HOWARD BEACH),False
+East Williamsburg,Williamsburg,Williamsburg,East Williamsburg,East Williamsburg (WILLIAMSBURG),False
+South Williamsburg,Williamsburg,Williamsburg,South Williamsburg,South Williamsburg (WILLIAMSBURG),False
+Hudson Heights,Washington Heights,Washington Heights,Hudson Heights,Hudson Heights (WASHINGTON HEIGHTS),False
+Rochdale,Jamaica,South Jamaica,Rochdale,Rochdale ((SOUTH JAMAICA(JAMAICA)),False
+Locust Manor,Jamaica,South Jamaica,Locust Manor,Locust Manor (SOUTH JAMAICA(JAMAICA)),False
+Brookville,Springfield Gardens,Springfield Gardens,Brookville,Brookville (SPRINGFIELD GARDENS),False
+Bellaire,Queens Village,Queens Village,Bellaire,Bellaire (QUEENS VILLAGE),False
+Addisleigh Park,Saint Albans,Saint Albans,Addisleigh Park,Addisleigh Park (SAINT ALBANS),False
+Beechhurst,Whitestone,Whitestone,Beechhurst,Beechhurst (WHITESTONE),False
+Hunters Point,Long Island City,Long Island City,Hunters Point,Hunters Point (LONG ISLAND CITY),False
+Eastcheser Bay,Throgs Neck,Throgs Neck,Eastcheser Bay,Eastcheser Bay (THROGS NECK),False
+Police Academy,College Point,College Point,Police Academy,Police Academy (COLLEGE POINT),False
+Fresh Meadows Apartements,Fresh Meadows,Fresh Meadows,Fresh Meadows Apartements,Fresh Meadows Apartements (FRESH MEADOWS) (PRIVATE COMMUNITY),False
+Liberty Park,Glendale,Glendale,Liberty Park,Liberty Park (GLENDALE),False
+Alphabet City,East Village,East Village,Alphabet City,Alphabet City (EAST VILLAGE),False
+Co-op Village,Co-Op City,Co-Op City,Co-op Village,Co-op Village (CO-OP CITY),False
+idk what this is,idk what this is,idk what this is,idk what this is,idk what this is,False
+Abandoned Pier 107,Abandoned Pier 107,Abandoned Pier 107,Abandoned Pier 107,Abandoned Pier 107,False
+Abandoned Marine Transfer Station,Hamilton Heights,Harlem,Abandoned Marine Transfer Station,Abandoned Marine Transfer Station (HAMILTON HEIGHTS)HARLEM)),False
+Cardinal Spellman Highschool,Edenwald,Edenwald,Cardinal Spellman Highschool,Cardinal Spellman Highschool (EDENWALD),False
+Manhattan Valley/ Bloomingdale,Upper West Side,Upper West Side,Manhattan Valley/ Bloomingdale,Manhattan Valley/ Bloomingdale (UPPER WEST SIDE),False
+Wave Hill Public Garden and Cultural Center,Riverdale,Riverdale,Wave Hill Public Garden and Cultural Center,Wave Hill Public Garden and Cultural Center (RIVERDALE),False
+Malba,Whitestone,Whitestone,Malba,Malba (WHITESTONE),False
+Diamond District,Midtown,Midtown,Diamond District,Diamond District (MIDTOWN),False
+Garment District,Midtown,Midtown,Garment District,Garment District (MIDTOWN),False
+Kips Bay,Midtown,Midtown East,Kips Bay,Kips Bay (MIDTOWN EAST (MIDTOWN)),False
+Blissville,Long Island City,Long Island City,Blissville,Blissville (LONG ISLAND CITY),False
+Polo Grounds/Coogans Hollow,Washington Heights,Washington Heights,Polo Grounds/Coogans Hollow,Polo Grounds/Coogans Hollow (WASHINGTON HEIGHTS),False
+Astoria Heights,Astoria,Astoria,Astoria Heights,Astoria Heights (ASTORIA),False
+Halletts Point,Astoria,Astoria,Halletts Point,Halletts Point (ASTORIA),False
+Hunts Point Food Center,Hunts Point,Hunts Point,Hunts Point Food Center,Hunts Point Food Center (HUNTS POINT),False
+Lincoln Square,Upper West Side,Upper West Side,Lincoln Square,Lincoln Square (UPPER WEST SIDE),False
+Boar's Head Brand,Williamsburg,East Williamsburg,Boar's Head Brand,Boar's Head Brand (EAST WILLIAMSBURG(WILLIAMSBURG)),False
+Homecrest,Sheepshead Bay,Sheepshead Bay,Homecrest,Homecrest (SHEEPSHEAD BAY),False
+Fort George,Washington Heights,Washington Heights,Fort George,Fort George (WASHINGTON HEIGHTS),False
+Murray Hill,Flushing,Flushing,Murray Hill,Murray Hill (FLUSHING),False
+Kissena Park,Flushing,Flushing,Kissena Park,Kissena Park (FLUSHING),False
+Hillcrest,Flushing,Flushing,Hillcrest,Hillcrest (FLUSHING),False
+Flushing Heights,Flushing,Flushing,Flushing Heights,Flushing Heights (FLUSHING),False
+Broadway-Flushing,Flushng,Flushng,Broadway-Flushing,Broadway-Flushing (FLUSHNG),False
+Downtown Flushing,Flushing,Flushing,Downtown Flushing,Downtown Flushing (FLUSHING),False
+Pomonok/Electchester,Flushing,Flushing,Pomonok/Electchester,Pomonok/Electchester (FLUSHING),False
+Auberndale,Flushing,Flushing,Auberndale,Auberndale (FLUSHING),False
+Abandoned Pier 107,Abandoned Pier 107,Abandoned Pier 107,Abandoned Pier 107,Abandoned Pier 107,True
+"Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""","Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""","Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""","Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""","Abandoned Vernon C. Bain Correctional Center AKA ""The Boat""",True
+Allerton,Allerton,Allerton,Allerton,Allerton,True
+Aquaduct Racetrack,Aquaduct Racetrack,Aquaduct Racetrack,Aquaduct Racetrack,Aquaduct Racetrack,True
+Arverne,Arverne,Arverne,Arverne,Arverne,True
+Astoria,Astoria,Astoria,Astoria,Astoria,True
+Bath Beach,Bath Beach,Bath Beach,Bath Beach,Bath Beach,True
+Battery Park City,Battery Park City,Battery Park City,Battery Park City,Battery Park City,True
+Bay Ridge,Bay Ridge,Bay Ridge,Bay Ridge,Bay Ridge,True
+Bayside,Bayside,Bayside,Bayside,Bayside,True
+Bayswater,Bayswater,Bayswater,Bayswater,Bayswater,True
+Bed-Stuy,Bed-Stuy,Bed-Stuy,Bed-Stuy,Bed-Stuy,True
+Bedford Park,Bedford Park,Bedford Park,Bedford Park,Bedford Park,True
+Beechhurst,Beechhurst,Beechhurst,Beechhurst,Beechhurst,True
+Belle Harbor,Belle Harbor,Belle Harbor,Belle Harbor,Belle Harbor,True
+Bellerose,Bellerose,Bellerose,Bellerose,Bellerose,True
+Belmont,Belmont,Belmont,Belmont,Belmont,True
+Bensonhurst,Bensonhurst,Bensonhurst,Bensonhurst,Bensonhurst,True
+Bergen Beach,Bergen Beach,Bergen Beach,Bergen Beach,Bergen Beach,True
+Boerum Hill,Boerum Hill,Boerum Hill,Boerum Hill,Boerum Hill,True
+Borough Park,Borough Park,Borough Park,Borough Park,Borough Park,True
+Breezy Point,Breezy Point,Breezy Point,Breezy Point,Breezy Point,True
+Briarwood,Briarwood,Briarwood,Briarwood,Briarwood,True
+Brighton Beach,Brighton Beach,Brighton Beach,Brighton Beach,Brighton Beach,True
+Broad Channel,Broad Channel,Broad Channel,Broad Channel,Broad Channel,True
+Bronx BIT,Bronx BIT,Bronx BIT,Bronx BIT,Bronx BIT,True
+Bronx Borough Crews,Bronx Borough Crews,Bronx Borough Crews,Bronx Borough Crews,Bronx Borough Crews,True
+Bronx Scrap Metal,Bronx Scrap Metal,Bronx Scrap Metal,Bronx Scrap Metal,Bronx Scrap Metal,True
+Bronx Tow Pound,Bronx Tow Pound,Bronx Tow Pound,Bronx Tow Pound,Bronx Tow Pound,True
+Brooklyn Heights,Brooklyn Heights,Brooklyn Heights,Brooklyn Heights,Brooklyn Heights,True
+Brooklyn Marine Terminal,Brooklyn Marine Terminal,Brooklyn Marine Terminal,Brooklyn Marine Terminal,Brooklyn Marine Terminal,True
+Brooklyn Navy Yard,Brooklyn Navy Yard,Brooklyn Navy Yard,Brooklyn Navy Yard,Brooklyn Navy Yard,True
+Brownsville,Brownsville,Brownsville,Brownsville,Brownsville,True
+Bushwick,Bushwick,Bushwick,Bushwick,Bushwick,True
+Cambria Heights,Cambria Heights,Cambria Heights,Cambria Heights,Cambria Heights,True
+Canarsie,Canarsie,Canarsie,Canarsie,Canarsie,True
+Carroll Gardens,Carroll Gardens,Carroll Gardens,Carroll Gardens,Carroll Gardens,True
+Castle Hill,Castle Hill,Castle Hill,Castle Hill,Castle Hill,True
+Chelsea,Chelsea,Chelsea,Chelsea,Chelsea,True
+Chinatown,Chinatown,Chinatown,Chinatown,Chinatown,True
+City Island,City Island,City Island,City Island,City Island,True
+Civic Center,Civic Center,Civic Center,Civic Center,Civic Center,True
+Claremont,Claremont,Claremont,Claremont,Claremont,True
+Classon Point,Classon Point,Classon Point,Classon Point,Classon Point,True
+Clinton Hill,Clinton Hill,Clinton Hill,Clinton Hill,Clinton Hill,True
+Co-Op City,Co-Op City,Co-Op City,Co-Op City,Co-Op City,True
+Co-op City,Co-op City,Co-op City,Co-op City,Co-op City,True
+Cobble Hill,Cobble Hill,Cobble Hill,Cobble Hill,Cobble Hill,True
+College Point,College Point,College Point,College Point,College Point,True
+College Point Shopping Center,College Point Shopping Center,College Point Shopping Center,College Point Shopping Center,College Point Shopping Center,True
+Columbia Street Waterfront District,Columbia Street Waterfront District,Columbia Street Waterfront District,Columbia Street Waterfront District,Columbia Street Waterfront District,True
+Con Edison East River Generating Station,Con Edison East River Generating Station,Con Edison East River Generating Station,Con Edison East River Generating Station,Con Edison East River Generating Station,True
+Concourse,Concourse,Concourse,Concourse,Concourse,True
+Coney Island,Coney Island,Coney Island,Coney Island,Coney Island,True
+Corona,Corona,Corona,Corona,Corona,True
+Country Club,Country Club,Country Club,Country Club,Country Club,True
+Crotona Park East,Crotona Park East,Crotona Park East,Crotona Park East,Crotona Park East,True
+Crown Heights,Crown Heights,Crown Heights,Crown Heights,Crown Heights,True
+DOT and NYPD Highway Patrol Unit 2,DOT and NYPD Highway Patrol Unit 2,DOT and NYPD Highway Patrol Unit 2,DOT and NYPD Highway Patrol Unit 2,DOT and NYPD Highway Patrol Unit 2,True
+DSNY Queens East 11 13A Garage,DSNY Queens East 11 13A Garage,DSNY Queens East 11 13A Garage,DSNY Queens East 11 13A Garage,DSNY Queens East 11 13A Garage,True
+Douglaston,Douglaston,Douglaston,Douglaston,Douglaston,True
+Downtown Brooklyn,Downtown Brooklyn,Downtown Brooklyn,Downtown Brooklyn,Downtown Brooklyn,True
+Dumbo,Dumbo,Dumbo,Dumbo,Dumbo,True
+Dyker Heights,Dyker Heights,Dyker Heights,Dyker Heights,Dyker Heights,True
+East Elmhurst,East Elmhurst,East Elmhurst,East Elmhurst,East Elmhurst,True
+East Flatbush,East Flatbush,East Flatbush,East Flatbush,East Flatbush,True
+East Harlem,East Harlem,East Harlem,East Harlem,East Harlem,True
+East New York,East New York,East New York,East New York,East New York,True
+East Village,East Village,East Village,East Village,East Village,True
+Eastchester,Eastchester,Eastchester,Eastchester,Eastchester,True
+Edenwald,Edenwald,Edenwald,Edenwald,Edenwald,True
+Edgemere,Edgemere,Edgemere,Edgemere,Edgemere,True
+Ellis Island,Ellis Island,Ellis Island,Ellis Island,Ellis Island,True
+Elmhurst,Elmhurst,Elmhurst,Elmhurst,Elmhurst,True
+Far Rockaway,Far Rockaway,Far Rockaway,Far Rockaway,Far Rockaway,True
+Financial District,Financial District,Financial District,Financial District,Financial District,True
+Flatbush,Flatbush,Flatbush,Flatbush,Flatbush,True
+Flatiron District,Flatiron District,Flatiron District,Flatiron District,Flatiron District,True
+Flatlands,Flatlands,Flatlands,Flatlands,Flatlands,True
+Floral Park,Floral Park,Floral Park,Floral Park,Floral Park,True
+Floyd Bennet Field,Floyd Bennet Field,Floyd Bennet Field,Floyd Bennet Field,Floyd Bennet Field,True
+Flushing,Flushing,Flushing,Flushing,Flushing,True
+Flushng,Flushng,Flushng,Flushng,Flushng,True
+Fordham,Fordham,Fordham,Fordham,Fordham,True
+Fordham Heights,Fordham Heights,Fordham Heights,Fordham Heights,Fordham Heights,True
+Fordham University,Fordham University,Fordham University,Fordham University,Fordham University,True
+Forest Hills,Forest Hills,Forest Hills,Forest Hills,Forest Hills,True
+Forest Hills Gardens,Forest Hills Gardens,Forest Hills Gardens,Forest Hills Gardens,Forest Hills Gardens,True
+Forest Park Shop,Forest Park Shop,Forest Park Shop,Forest Park Shop,Forest Park Shop,True
+Fort Greene,Fort Greene,Fort Greene,Fort Greene,Fort Greene,True
+Fort Hamilton Military Base,Fort Hamilton Military Base,Fort Hamilton Military Base,Fort Hamilton Military Base,Fort Hamilton Military Base,True
+Fresh Meadows,Fresh Meadows,Fresh Meadows,Fresh Meadows,Fresh Meadows,True
+Gerritsen Beach,Gerritsen Beach,Gerritsen Beach,Gerritsen Beach,Gerritsen Beach,True
+Glen Oaks,Glen Oaks,Glen Oaks,Glen Oaks,Glen Oaks,True
+Glendale,Glendale,Glendale,Glendale,Glendale,True
+Governors Island,Governors Island,Governors Island,Governors Island,Governors Island,True
+Gowanus,Gowanus,Gowanus,Gowanus,Gowanus,True
+Gramercy,Gramercy,Gramercy,Gramercy,Gramercy,True
+Gravesend,Gravesend,Gravesend,Gravesend,Gravesend,True
+Greenpoint,Greenpoint,Greenpoint,Greenpoint,Greenpoint,True
+Greenwich Village,Greenwich Village,Greenwich Village,Greenwich Village,Greenwich Village,True
+Hamilton Heights,Hamilton Heights,Hamilton Heights,Hamilton Heights,Hamilton Heights,True
+Harlem,Harlem,Harlem,Harlem,Harlem,True
+Hart Island,Hart Island,Hart Island,Hart Island,Hart Island,True
+Helipads Hudson River,Helipads Hudson River,Helipads Hudson River,Helipads Hudson River,Helipads Hudson River,True
+Hell's Kitchen,Hell's Kitchen,Hell's Kitchen,Hell's Kitchen,Hell's Kitchen,True
+Hells Kitchen,Hells Kitchen,Hells Kitchen,Hells Kitchen,Hells Kitchen,True
+High Island,High Island,High Island,High Island,High Island,True
+Highbridge,Highbridge,Highbridge,Highbridge,Highbridge,True
+Hollis,Hollis,Hollis,Hollis,Hollis,True
+Hollis Hills,Hollis Hills,Hollis Hills,Hollis Hills,Hollis Hills,True
+Holliswood,Holliswood,Holliswood,Holliswood,Holliswood,True
+Howard Beach,Howard Beach,Howard Beach,Howard Beach,Howard Beach,True
+Hudson Square,Hudson Square,Hudson Square,Hudson Square,Hudson Square,True
+Hudson Yards,Hudson Yards,Hudson Yards,Hudson Yards,Hudson Yards,True
+Hunts Point,Hunts Point,Hunts Point,Hunts Point,Hunts Point,True
+Hutchinson Metro Center,Hutchinson Metro Center,Hutchinson Metro Center,Hutchinson Metro Center,Hutchinson Metro Center,True
+International Union of Operating Engineers School,International Union of Operating Engineers School,International Union of Operating Engineers School,International Union of Operating Engineers School,International Union of Operating Engineers School,True
+Inwood,Inwood,Inwood,Inwood,Inwood,True
+JFK Airport,JFK Airport,JFK Airport,JFK Airport,JFK Airport,True
+JFK Airport Restricted Area,JFK Airport Restricted Area,JFK Airport Restricted Area,JFK Airport Restricted Area,JFK Airport Restricted Area,True
+Jackson Heights,Jackson Heights,Jackson Heights,Jackson Heights,Jackson Heights,True
+Jamaica,Jamaica,Jamaica,Jamaica,Jamaica,True
+Jamaica Estates,Jamaica Estates,Jamaica Estates,Jamaica Estates,Jamaica Estates,True
+Jamaica Hills,Jamaica Hills,Jamaica Hills,Jamaica Hills,Jamaica Hills,True
+Jamaica Wastewater Treatment Plant,Jamaica Wastewater Treatment Plant,Jamaica Wastewater Treatment Plant,Jamaica Wastewater Treatment Plant,Jamaica Wastewater Treatment Plant,True
+Jerome Park Reservior,Jerome Park Reservior,Jerome Park Reservior,Jerome Park Reservior,Jerome Park Reservior,True
+Kensington,Kensington,Kensington,Kensington,Kensington,True
+Kew Gardens,Kew Gardens,Kew Gardens,Kew Gardens,Kew Gardens,True
+Kew Gardens Hills,Kew Gardens Hills,Kew Gardens Hills,Kew Gardens Hills,Kew Gardens Hills,True
+Kingsbridge,Kingsbridge,Kingsbridge,Kingsbridge,Kingsbridge,True
+Kingsbringe,Kingsbringe,Kingsbringe,Kingsbringe,Kingsbringe,True
+Kips Bay,Kips Bay,Kips Bay,Kips Bay,Kips Bay,True
+Laguardia Airport,Laguardia Airport,Laguardia Airport,Laguardia Airport,Laguardia Airport,True
+Laguardia Airport Restricted Area,Laguardia Airport Restricted Area,Laguardia Airport Restricted Area,Laguardia Airport Restricted Area,Laguardia Airport Restricted Area,True
+Laurelton,Laurelton,Laurelton,Laurelton,Laurelton,True
+Liberty Island,Liberty Island,Liberty Island,Liberty Island,Liberty Island,True
+Little Italy,Little Italy,Little Italy,Little Italy,Little Italy,True
+Little Neck,Little Neck,Little Neck,Little Neck,Little Neck,True
+Long Island City,Long Island City,Long Island City,Long Island City,Long Island City,True
+Long Island University,Long Island University,Long Island University,Long Island University,Long Island University,True
+Longwood,Longwood,Longwood,Longwood,Longwood,True
+Lower East Side,Lower East Side,Lower East Side,Lower East Side,Lower East Side,True
+MTA Baisley Pond Bus Depot,MTA Baisley Pond Bus Depot,MTA Baisley Pond Bus Depot,MTA Baisley Pond Bus Depot,MTA Baisley Pond Bus Depot,True
+MTA Flatbush Bus Depot,MTA Flatbush Bus Depot,MTA Flatbush Bus Depot,MTA Flatbush Bus Depot,MTA Flatbush Bus Depot,True
+MTA West Farms Bus Depot,MTA West Farms Bus Depot,MTA West Farms Bus Depot,MTA West Farms Bus Depot,MTA West Farms Bus Depot,True
+Manhattan Beach,Manhattan Beach,Manhattan Beach,Manhattan Beach,Manhattan Beach,True
+Marble Hill,Marble Hill,Marble Hill,Marble Hill,Marble Hill,True
+Marine Park,Marine Park,Marine Park,Marine Park,Marine Park,True
+Maspeth,Maspeth,Maspeth,Maspeth,Maspeth,True
+Meadowmere,Meadowmere,Meadowmere,Meadowmere,Meadowmere,True
+Melrose,Melrose,Melrose,Melrose,Melrose,True
+Middle Village,Middle Village,Middle Village,Middle Village,Middle Village,True
+Midtown,Midtown,Midtown,Midtown,Midtown,True
+Midwood,Midwood,Midwood,Midwood,Midwood,True
+Mill Basin,Mill Basin,Mill Basin,Mill Basin,Mill Basin,True
+Morningside Heights,Morningside Heights,Morningside Heights,Morningside Heights,Morningside Heights,True
+Morris Heights,Morris Heights,Morris Heights,Morris Heights,Morris Heights,True
+Morris Park,Morris Park,Morris Park,Morris Park,Morris Park,True
+Morrisania,Morrisania,Morrisania,Morrisania,Morrisania,True
+Mott Haven,Mott Haven,Mott Haven,Mott Haven,Mott Haven,True
+Mount Eden,Mount Eden,Mount Eden,Mount Eden,Mount Eden,True
+Mount Hope,Mount Hope,Mount Hope,Mount Hope,Mount Hope,True
+Neponsit,Neponsit,Neponsit,Neponsit,Neponsit,True
+Nolita,Nolita,Nolita,Nolita,Nolita,True
+North Brother Island,North Brother Island,North Brother Island,North Brother Island,North Brother Island,True
+North River Wastewater Treatment Plant,North River Wastewater Treatment Plant,North River Wastewater Treatment Plant,North River Wastewater Treatment Plant,North River Wastewater Treatment Plant,True
+North Shore Towers,North Shore Towers,North Shore Towers,North Shore Towers,North Shore Towers,True
+Norwood,Norwood,Norwood,Norwood,Norwood,True
+Owls Head Wastewater Treatment Plant,Owls Head Wastewater Treatment Plant,Owls Head Wastewater Treatment Plant,Owls Head Wastewater Treatment Plant,Owls Head Wastewater Treatment Plant,True
+Ozone Park,Ozone Park,Ozone Park,Ozone Park,Ozone Park,True
+Park Maintenance,Park Maintenance,Park Maintenance,Park Maintenance,Park Maintenance,True
+Park Slope,Park Slope,Park Slope,Park Slope,Park Slope,True
+Parkchester,Parkchester,Parkchester,Parkchester,Parkchester,True
+Pelham Bay,Pelham Bay,Pelham Bay,Pelham Bay,Pelham Bay,True
+Pelham Bay Landfill,Pelham Bay Landfill,Pelham Bay Landfill,Pelham Bay Landfill,Pelham Bay Landfill,True
+Pelham Gardens,Pelham Gardens,Pelham Gardens,Pelham Gardens,Pelham Gardens,True
+Pelham Parkway,Pelham Parkway,Pelham Parkway,Pelham Parkway,Pelham Parkway,True
+Prospect Heights,Prospect Heights,Prospect Heights,Prospect Heights,Prospect Heights,True
+Quaker Cemetary,Quaker Cemetary,Quaker Cemetary,Quaker Cemetary,Quaker Cemetary,True
+Queens College,Queens College,Queens College,Queens College,Queens College,True
+Queens Village,Queens Village,Queens Village,Queens Village,Queens Village,True
+RW Iron Works,RW Iron Works,RW Iron Works,RW Iron Works,RW Iron Works,True
+Randall'S Island,Randall'S Island,Randall'S Island,Randall'S Island,Randall'S Island,True
+Randall's Island,Randall's Island,Randall's Island,Randall's Island,Randall's Island,True
+Rat Island,Rat Island,Rat Island,Rat Island,Rat Island,True
+Red Hook,Red Hook,Red Hook,Red Hook,Red Hook,True
+Redhook,Redhook,Redhook,Redhook,Redhook,True
+Rego Park,Rego Park,Rego Park,Rego Park,Rego Park,True
+Richmond Hill,Richmond Hill,Richmond Hill,Richmond Hill,Richmond Hill,True
+Ridgewood,Ridgewood,Ridgewood,Ridgewood,Ridgewood,True
+Rikers Island,Rikers Island,Rikers Island,Rikers Island,Rikers Island,True
+Riverdale,Riverdale,Riverdale,Riverdale,Riverdale,True
+Rockaway Beach,Rockaway Beach,Rockaway Beach,Rockaway Beach,Rockaway Beach,True
+Rockaway Park,Rockaway Park,Rockaway Park,Rockaway Park,Rockaway Park,True
+Rodman Neck NYPD Firing Range,Rodman Neck NYPD Firing Range,Rodman Neck NYPD Firing Range,Rodman Neck NYPD Firing Range,Rodman Neck NYPD Firing Range,True
+Roosevelt Island,Roosevelt Island,Roosevelt Island,Roosevelt Island,Roosevelt Island,True
+Rosedale,Rosedale,Rosedale,Rosedale,Rosedale,True
+SNY2- Amazon,SNY2- Amazon,SNY2- Amazon,SNY2- Amazon,SNY2- Amazon,True
+Saint Albans,Saint Albans,Saint Albans,Saint Albans,Saint Albans,True
+Sea Gate,Sea Gate,Sea Gate,Sea Gate,Sea Gate,True
+Selby Transportation Corporation,Selby Transportation Corporation,Selby Transportation Corporation,Selby Transportation Corporation,Selby Transportation Corporation,True
+Sheepshead Bay,Sheepshead Bay,Sheepshead Bay,Sheepshead Bay,Sheepshead Bay,True
+SoHo,SoHo,SoHo,SoHo,SoHo,True
+Soundview,Soundview,Soundview,Soundview,Soundview,True
+South Ozone Park,South Ozone Park,South Ozone Park,South Ozone Park,South Ozone Park,True
+Spring Creek,Spring Creek,Spring Creek,Spring Creek,Spring Creek,True
+Springfield Gardens,Springfield Gardens,Springfield Gardens,Springfield Gardens,Springfield Gardens,True
+St. Albans,St. Albans,St. Albans,St. Albans,St. Albans,True
+St. John's University,St. John's University,St. John's University,St. John's University,St. John's University,True
+Stratton Park,Stratton Park,Stratton Park,Stratton Park,Stratton Park,True
+Stuyvesant Town/Peter Cooper Village,Stuyvesant Town/Peter Cooper Village,Stuyvesant Town/Peter Cooper Village,Stuyvesant Town/Peter Cooper Village,Stuyvesant Town/Peter Cooper Village,True
+Sunnyside,Sunnyside,Sunnyside,Sunnyside,Sunnyside,True
+Sunset Park,Sunset Park,Sunset Park,Sunset Park,Sunset Park,True
+The Hole,The Hole,The Hole,The Hole,The Hole,True
+Throgs Neck,Throgs Neck,Throgs Neck,Throgs Neck,Throgs Neck,True
+Tremont,Tremont,Tremont,Tremont,Tremont,True
+Tribeca,Tribeca,Tribeca,Tribeca,Tribeca,True
+Unionport,Unionport,Unionport,Unionport,Unionport,True
+University Heights,University Heights,University Heights,University Heights,University Heights,True
+Upper East Side,Upper East Side,Upper East Side,Upper East Side,Upper East Side,True
+Upper West Side,Upper West Side,Upper West Side,Upper West Side,Upper West Side,True
+Van Nest,Van Nest,Van Nest,Van Nest,Van Nest,True
+Vinegar Hill,Vinegar Hill,Vinegar Hill,Vinegar Hill,Vinegar Hill,True
+Wakefield,Wakefield,Wakefield,Wakefield,Wakefield,True
+Washington Heights,Washington Heights,Washington Heights,Washington Heights,Washington Heights,True
+West Farms,West Farms,West Farms,West Farms,West Farms,True
+Westchester Square,Westchester Square,Westchester Square,Westchester Square,Westchester Square,True
+Whitestone,Whitestone,Whitestone,Whitestone,Whitestone,True
+Willets Point,Willets Point,Willets Point,Willets Point,Willets Point,True
+Williamsbridge,Williamsbridge,Williamsbridge,Williamsbridge,Williamsbridge,True
+Williamsburg,Williamsburg,Williamsburg,Williamsburg,Williamsburg,True
+Windsor Terrace,Windsor Terrace,Windsor Terrace,Windsor Terrace,Windsor Terrace,True
+Woodhaven,Woodhaven,Woodhaven,Woodhaven,Woodhaven,True
+Woodlawn Heights,Woodlawn Heights,Woodlawn Heights,Woodlawn Heights,Woodlawn Heights,True
+Woodside,Woodside,Woodside,Woodside,Woodside,True
+idk what this is,idk what this is,idk what this is,idk what this is,idk what this is,True
