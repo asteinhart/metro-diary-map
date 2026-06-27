@@ -3,35 +3,75 @@
 	import { base } from '$app/paths';
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
-	import STYLE_URL from '../../static/toner_style.json';
+	import STYLE_URL from '../../static/watercolor-bw.json';
+
+	// --- SEO / social-share metadata --------------------------------------------
+	// og:image and twitter:image must be absolute URLs for scrapers to resolve them,
+	// so these are pinned to the deployed GitHub Pages origin rather than `base`.
+	const SITE_URL = 'https://austinsteinhart.com/metro-diary-map';
+	const PAGE_TITLE = 'Stories of New York City, Mapped';
+	const PAGE_DESC =
+		"An interactive map of the New York Times' Metropolitan Diary — reader stories of everyday life in New York City, placed where they happened, 1976–2026.";
+	const SHARE_IMAGE = `${SITE_URL}/thumbs.webp`;
+	const SHARE_IMAGE_ALT = 'Charcoal sketch of New Yorkers waiting on a subway platform.';
 
 	// Manhattan-ish center
 	const CENTER = [-73.97, 40.758];
 	const ZOOM = 11.5;
 
-	// The three placements process.py emits — each its own GeoJSON of the same entries,
-	// differing only in *where* the dot lands. Switching views swaps the points source.
+	// keep the view locked over NYC — panning can't wander past these bounds
+	// [[west, south], [east, north]]
+	const NYC_BOUNDS = [
+		[-74.3, 40.47],
+		[-73.65, 40.95]
+	];
+
+	// One base layer — areas.geojson places every entry at the most specific spot it resolved
+	// to, and each feature's `placement` records the tier. The filter buttons narrow that set
+	// to a placement category. "On the Subway" is the exception: it swaps to subway.geojson,
+	// where subway-mentioning entries are dropped onto the line they named.
+	const AREAS_FILE = `${base}/data/areas.geojson`;
+	const SUBWAY_FILE = `${base}/data/subway.geojson`;
+
+	// placement-tier tests, run against each feature's `placement` string
+	const IS_PLACE = (p) => p === 'specific' || p.startsWith('area:');
+	const IS_NEIGHBORHOOD = (p) => p === 'neighborhood' || p === 'borough';
+
 	const VIEWS = [
-		{ id: 'specific', label: 'Specific', file: `${base}/data/locations.geojson` },
-		{ id: 'subway', label: 'Subway', file: `${base}/data/subway.geojson` },
-		{ id: 'borough', label: 'Borough', file: `${base}/data/areas.geojson` }
+		{ id: 'all', label: 'All', file: AREAS_FILE, match: null, subway: false },
+		{ id: 'place', label: 'A specific location', file: AREAS_FILE, match: IS_PLACE, subway: false },
+		{ id: 'subway', label: 'On the<br>subway', file: SUBWAY_FILE, match: null, subway: true },
+		{
+			id: 'neighborhood',
+			label: 'In a neighborhood',
+			file: AREAS_FILE,
+			match: IS_NEIGHBORHOOD,
+			subway: false
+		}
 	];
 
 	const VIEW_DESC = {
-		specific: 'Dropped at the exact place each diary names.',
-		subway: 'Placed along the subway line each diary mentions.',
-		borough: 'Scattered through the borough each diary names.'
+		all: '',
+		place: '',
+		subway: '',
+		neighborhood: ''
 	};
+
+	// "All" sits full-width on its own row above; the category filters share a row below
+	const ALL_VIEW = VIEWS.find((v) => v.id === 'all');
+	const CATEGORY_VIEWS = VIEWS.filter((v) => v.id !== 'all');
 
 	const EMPTY = { type: 'FeatureCollection', features: [] };
 
 	let mapEl;
 	let map;
-	let activeView = $state('specific');
+	let activeView = $state('all');
 	let loading = $state(true);
 	let count = $state(0);
-	let total = $state(0);
+	// total entries across the whole corpus (the "All" set); the count is shown as a fraction of it
+	let grandTotal = $state(0);
 	// debug control: hide geocoded dots below this confidence (null confidence always shows)
+	const debug = false;
 	let minConfidence = $state(0);
 	// year range — bounds are learned from the data the first time a view loads
 	let yearFloor = $state(1976);
@@ -40,25 +80,30 @@
 	let yearHi = $state(2026);
 	let yearInit = false;
 
-	const filtered = $derived(minConfidence > 0 || yearLo > yearFloor || yearHi < yearCeil);
+	// handle positions as a percentage of the track, for the filled segment between them
+	const yearSpan = $derived(Math.max(1, yearCeil - yearFloor));
+	const yearLoPct = $derived(((yearLo - yearFloor) / yearSpan) * 100);
+	const yearHiPct = $derived(((yearHi - yearFloor) / yearSpan) * 100);
+
 	const countLabel = $derived(
 		loading
 			? 'Loading…'
-			: filtered
-				? `${count.toLocaleString()} of ${total.toLocaleString()} shown`
-				: `${total.toLocaleString()} entries`
+			: count >= grandTotal
+				? `${grandTotal.toLocaleString()} entries`
+				: `${count.toLocaleString()} of ${grandTotal.toLocaleString()} entries`
 	);
 
-	// caches so toggling a view (or re-hovering) never re-fetches
-	const viewCache = {}; // view id -> FeatureCollection
+	// cache loaded source files so toggling a view (or re-hovering) never re-fetches
+	const fileCache = {}; // file url -> FeatureCollection
 	let bodies = {}; // entry_id -> body text (loaded once, looked up on hover)
+	// the features currently on the map: the source file, narrowed to the active view's tier
+	let displayed = EMPTY;
 
-	async function loadView(id) {
-		if (!viewCache[id]) {
-			const view = VIEWS.find((v) => v.id === id);
-			viewCache[id] = await fetch(view.file).then((r) => r.json());
+	async function loadFile(file) {
+		if (!fileCache[file]) {
+			fileCache[file] = await fetch(file).then((r) => r.json());
 		}
-		return viewCache[id];
+		return fileCache[file];
 	}
 
 	let loadToken = 0;
@@ -66,13 +111,21 @@
 		activeView = id;
 		loading = true;
 		const token = ++loadToken;
-		const data = await loadView(id);
+		const view = VIEWS.find((v) => v.id === id);
+		const data = await loadFile(view.file);
 		if (token !== loadToken) return; // a newer click superseded this one
-		map.getSource('diary-points')?.setData(data);
-		setLayerVisible('subway-lines', id === 'subway');
-		setLayerVisible('borough-outline', id === 'borough');
-		total = data.features.length;
-		initYearBounds(data);
+		// "All" shows the whole file; the category views keep only their placement tier
+		displayed = view.match
+			? {
+					type: 'FeatureCollection',
+					features: data.features.filter((f) => view.match(f.properties.placement))
+				}
+			: data;
+		map.getSource('diary-points')?.setData(displayed);
+		setLayerVisible('subway-lines', view.subway);
+		// the corpus total is the full "All" set (areas.geojson), regardless of the active filter
+		if (view.file === AREAS_FILE) grandTotal = data.features.length;
+		initYearBounds(data); // bounds come from the full source so they cover every tier
 		applyFilters();
 		loading = false;
 	}
@@ -96,14 +149,11 @@
 		];
 		if (map.getLayer('diary-points-dot')) map.setFilter('diary-points-dot', filter);
 		if (map.getLayer('diary-points-glow')) map.setFilter('diary-points-glow', filter);
-		const data = viewCache[activeView];
-		count = data
-			? data.features.filter((f) => {
-					const c = f.properties.confidence ?? 1;
-					const y = f.properties.pub_year ?? 0;
-					return c >= minConfidence && y >= yearLo && y <= yearHi;
-				}).length
-			: 0;
+		count = displayed.features.filter((f) => {
+			const c = f.properties.confidence ?? 1;
+			const y = f.properties.pub_year ?? 0;
+			return c >= minConfidence && y >= yearLo && y <= yearHi;
+		}).length;
 	}
 
 	function initYearBounds(data) {
@@ -157,7 +207,7 @@
 			link.href = props.web_url;
 			link.target = '_blank';
 			link.rel = 'noopener noreferrer';
-			link.textContent = 'Read in The Times ›';
+			link.textContent = 'Read in the New York Times ›';
 			wrap.appendChild(link);
 		}
 
@@ -205,17 +255,26 @@
 			style: STYLE_URL,
 			center: CENTER,
 			zoom: ZOOM,
+			minZoom: 9.5,
+			maxBounds: NYC_BOUNDS,
+			// flat, north-up only: no rotation, no tilt
+			dragRotate: false,
+			pitchWithRotate: false,
+			touchPitch: false,
+			maxPitch: 0,
 			attributionControl: { compact: true }
 		});
 
-		map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+		// belt-and-suspenders: kill the rotate gesture on touch as well
+		map.touchZoomRotate.disableRotation();
+		// drop the rotate/pitch keyboard shortcuts, keep pan + zoom
+		map.keyboard.disableRotation?.();
+
+		map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
 
 		map.on('load', async () => {
-			// contextual basemap layers — loaded once, shown only for their view
-			const [subwayLines, boroughs] = await Promise.all([
-				fetch(`${base}/data/subway_lines.geojson`).then((r) => r.json()),
-				fetch(`${base}/data/boroughs.geojson`).then((r) => r.json())
-			]);
+			// contextual basemap layer — loaded once, shown only for the subway view
+			const subwayLines = await fetch(`${base}/data/subway_lines.geojson`).then((r) => r.json());
 
 			map.addSource('subway-lines', { type: 'geojson', data: subwayLines });
 			map.addLayer({
@@ -230,38 +289,29 @@
 				}
 			});
 
-			map.addSource('boroughs', { type: 'geojson', data: boroughs });
-			map.addLayer({
-				id: 'borough-outline',
-				type: 'line',
-				source: 'boroughs',
-				layout: { visibility: 'none' },
-				paint: { 'line-color': '#5a5a5a', 'line-width': 1, 'line-opacity': 0.8 }
-			});
-
 			// the diary points — white dots with a soft glow
 			map.addSource('diary-points', { type: 'geojson', data: EMPTY });
-			map.addLayer({
-				id: 'diary-points-glow',
-				type: 'circle',
-				source: 'diary-points',
-				paint: {
-					'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 14, 16, 16, 22],
-					'circle-color': '#ffffff',
-					'circle-opacity': 0.1,
-					'circle-blur': 0.6
-				}
-			});
+			// map.addLayer({
+			// 	id: 'diary-points-glow',
+			// 	type: 'circle',
+			// 	source: 'diary-points',
+			// 	paint: {
+			// 		'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 14, 16, 16, 22],
+			// 		'circle-color': '#000',
+			// 		'circle-opacity': 0.1,
+			// 		'circle-blur': 0.6
+			// 	}
+			// });
 			map.addLayer({
 				id: 'diary-points-dot',
 				type: 'circle',
 				source: 'diary-points',
 				paint: {
 					'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2.2, 13, 3.5, 16, 6],
-					'circle-color': '#ffffff',
+					'circle-color': '#000',
 					'circle-opacity': 0.92,
 					'circle-stroke-width': 0.75,
-					'circle-stroke-color': 'rgba(0, 0, 0, 0.55)'
+					'circle-stroke-color': 'rgba(255, 255, 255, 0.55)'
 				}
 			});
 
@@ -301,22 +351,59 @@
 	});
 </script>
 
+<svelte:head>
+	<title>{PAGE_TITLE}</title>
+	<meta name="description" content={PAGE_DESC} />
+	<link rel="canonical" href={SITE_URL} />
+	<meta name="theme-color" content="#111111" />
+
+	<!-- Open Graph (Facebook, LinkedIn, Slack, iMessage, …) -->
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content={PAGE_TITLE} />
+	<meta property="og:title" content={PAGE_TITLE} />
+	<meta property="og:description" content={PAGE_DESC} />
+	<meta property="og:url" content={SITE_URL} />
+	<meta property="og:image" content={SHARE_IMAGE} />
+	<meta property="og:image:type" content="image/jpeg" />
+	<meta property="og:image:width" content="869" />
+	<meta property="og:image:height" content="528" />
+	<meta property="og:image:alt" content={SHARE_IMAGE_ALT} />
+
+	<!-- Twitter / X -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content={PAGE_TITLE} />
+	<meta name="twitter:description" content={PAGE_DESC} />
+	<meta name="twitter:image" content={SHARE_IMAGE} />
+	<meta name="twitter:image:alt" content={SHARE_IMAGE_ALT} />
+</svelte:head>
+
 <div class="map-shell">
 	<div class="map" bind:this={mapEl}></div>
 
 	<aside class="panel">
 		<header class="panel-header">
-			<h1>An Extremely Detailed<br />Metropolitan Diary Map</h1>
-			<p class="byline">By the Metro Desk</p>
+			<h1>Stories of New York City, Mapped</h1>
+			<p class="byline">
+				As told by the New York Times' Metropolitan Diary column from 1976 to 2026.
+			</p>
 			<p class="date">June 22, 2026</p>
 		</header>
 
 		<div class="views">
-			{#each VIEWS as v}
-				<button class="view" class:active={activeView === v.id} onclick={() => showView(v.id)}>
-					{v.label}
-				</button>
-			{/each}
+			<button
+				class="view"
+				class:active={activeView === ALL_VIEW.id}
+				onclick={() => showView(ALL_VIEW.id)}
+			>
+				{ALL_VIEW.label}
+			</button>
+			<div class="view-row">
+				{#each CATEGORY_VIEWS as v}
+					<button class="view" class:active={activeView === v.id} onclick={() => showView(v.id)}>
+						{@html v.label}
+					</button>
+				{/each}
+			</div>
 		</div>
 		<p class="view-desc">{VIEW_DESC[activeView]}</p>
 		<p class="view-count">{countLabel}</p>
@@ -325,7 +412,9 @@
 			<label class="range-label">
 				Year <span class="range-val">{yearLo}&ndash;{yearHi}</span>
 			</label>
-			<div class="range-pair">
+			<div class="range-dual">
+				<div class="track"></div>
+				<div class="track-fill" style="left: {yearLoPct}%; right: {100 - yearHiPct}%"></div>
 				<input
 					type="range"
 					aria-label="Earliest year"
@@ -353,24 +442,26 @@
 			</div>
 		</div>
 
-		<div class="debug">
-			<label class="range-label" for="conf">
-				Min confidence <span class="range-val">{minConfidence.toFixed(2)}</span>
-			</label>
-			<input
-				id="conf"
-				type="range"
-				min="0"
-				max="1"
-				step="0.01"
-				value={minConfidence}
-				oninput={(e) => {
-					minConfidence = +e.currentTarget.value;
-					applyFilters();
-				}}
-			/>
-			<p class="debug-note">Debug: hides geocoded points below this confidence.</p>
-		</div>
+		{#if debug}
+			<div class="debug">
+				<label class="range-label" for="conf">
+					Min confidence <span class="range-val">{minConfidence.toFixed(2)}</span>
+				</label>
+				<input
+					id="conf"
+					type="range"
+					min="0"
+					max="1"
+					step="0.01"
+					value={minConfidence}
+					oninput={(e) => {
+						minConfidence = +e.currentTarget.value;
+						applyFilters();
+					}}
+				/>
+				<p class="debug-note">Debug: hides geocoded points below this confidence.</p>
+			</div>
+		{/if}
 	</aside>
 </div>
 
@@ -394,11 +485,12 @@
 		left: 16px;
 		width: 330px;
 		max-width: calc(100vw - 32px);
-		background: var(--color-panel);
-		border: 1px solid var(--color-panel-border);
+		background: #ffffff;
+		color: #111111;
+		border: 1px solid rgba(0, 0, 0, 0.5);
 		border-radius: var(--panel-radius);
 		padding: var(--panel-pad);
-		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 		z-index: 5;
 	}
 
@@ -413,57 +505,69 @@
 		margin: 10px 0 0;
 		font-size: 0.8rem;
 		font-weight: 600;
-		color: var(--color-text);
+		color: #111111;
 	}
 
 	.date {
 		margin: 2px 0 0;
 		font-size: 0.78rem;
-		color: var(--color-text-muted);
+		color: #555555;
 	}
 
 	.views {
 		display: flex;
+		flex-direction: column;
 		gap: 6px;
 		margin-top: 16px;
 	}
 
-	.view {
+	/* the three category filters share one row beneath the full-width "All" button */
+	.view-row {
+		display: flex;
+		gap: 6px;
+	}
+
+	.view-row .view {
 		flex: 1;
-		padding: 8px 0;
-		border: none;
+	}
+
+	.view {
+		padding: 7px 0;
+		border: 1px solid rgba(0, 0, 0, 0.3);
 		border-radius: 4px;
-		background: var(--color-toggle-bg);
-		color: var(--color-text-muted);
+		background: #ffffff;
+		color: #111111;
 		font-family: var(--font-sans);
-		font-size: 0.82rem;
+		font-size: 0.76rem;
 		font-weight: 600;
 		cursor: pointer;
 		transition:
 			background 0.12s ease,
-			color 0.12s ease;
+			color 0.12s ease,
+			border-color 0.12s ease;
 	}
 
 	.view:hover {
-		color: var(--color-text);
+		background: #f0f0f0;
 	}
 
 	.view.active {
-		background: #ffffff;
-		color: #000;
+		background: #111111;
+		border-color: #111111;
+		color: #ffffff;
 	}
 
 	.view-desc {
 		margin: 10px 0 0;
 		font-size: 0.78rem;
 		line-height: 1.35;
-		color: var(--color-text-muted);
+		color: #555555;
 	}
 
 	.view-count {
 		margin: 4px 0 0;
 		font-size: 0.74rem;
-		color: var(--color-text-dim);
+		color: #777777;
 	}
 
 	.year {
@@ -473,7 +577,7 @@
 	.debug {
 		margin-top: 16px;
 		padding-top: 14px;
-		border-top: 1px solid var(--color-panel-border);
+		border-top: 1px solid rgba(0, 0, 0, 0.12);
 	}
 
 	.range-label {
@@ -481,18 +585,79 @@
 		justify-content: space-between;
 		font-size: 0.78rem;
 		font-weight: 600;
-		color: var(--color-text-muted);
+		color: #333333;
 	}
 
 	.range-val {
-		color: var(--color-text);
+		color: #111111;
 		font-variant-numeric: tabular-nums;
 	}
 
-	.range-pair {
-		display: grid;
-		gap: 2px;
-		margin-top: 8px;
+	/* dual-handle slider: two range inputs overlaid on a shared track */
+	.range-dual {
+		position: relative;
+		height: 20px;
+		margin-top: 10px;
+	}
+
+	.range-dual .track,
+	.range-dual .track-fill {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		height: 4px;
+		border-radius: 2px;
+		pointer-events: none;
+	}
+
+	.range-dual .track {
+		left: 0;
+		right: 0;
+		background: rgba(0, 0, 0, 0.15);
+	}
+
+	.range-dual .track-fill {
+		background: var(--color-accent);
+	}
+
+	.range-dual input[type='range'] {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 20px;
+		margin: 0;
+		background: none;
+		pointer-events: none;
+		-webkit-appearance: none;
+		appearance: none;
+	}
+
+	/* only the thumbs should be interactive, so the lower input doesn't swallow clicks */
+	.range-dual input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		pointer-events: auto;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: #ffffff;
+		border: 2px solid var(--color-accent);
+		cursor: pointer;
+	}
+
+	.range-dual input[type='range']::-moz-range-thumb {
+		pointer-events: auto;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: #ffffff;
+		border: 2px solid var(--color-accent);
+		cursor: pointer;
+	}
+
+	.range-dual input[type='range']::-moz-range-track {
+		background: none;
 	}
 
 	input[type='range'] {
@@ -508,10 +673,10 @@
 	.debug-note {
 		margin: 6px 0 0;
 		font-size: 0.72rem;
-		color: var(--color-text-dim);
+		color: #777777;
 	}
 
-	/* ---- Mobile: panel spans the top ---- */
+	/* ---- Mobile: title bar on top, view buttons pinned to the bottom ---- */
 	@media (max-width: 640px) {
 		.panel {
 			top: 0;
@@ -526,13 +691,44 @@
 			padding: 14px;
 		}
 
+		.panel-header,
+		.panel-header h1 {
+			width: 100%;
+		}
+
 		.panel-header h1 {
 			font-size: 1.15rem;
 		}
 
-		.byline,
+		/* let the title flow across the full width instead of the desktop two-line break */
+		.title-break {
+			display: none;
+		}
+
 		.date {
 			display: none;
+		}
+
+		/* sliders hidden on mobile for now */
+		.year,
+		.debug {
+			display: none;
+		}
+
+		/* view buttons become a fixed bottom bar */
+		.views {
+			position: fixed;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			margin: 0;
+			padding: 10px 12px;
+			padding-bottom: calc(10px + env(safe-area-inset-bottom));
+			gap: 8px;
+			background: #ffffff;
+			border-top: 1px solid rgba(0, 0, 0, 0.25);
+			box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
+			z-index: 6;
 		}
 	}
 </style>

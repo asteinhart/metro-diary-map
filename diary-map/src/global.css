@@ -23,8 +23,8 @@
 	--color-text-dim: #6a6a6a;
 
 	/* Accents */
-	--color-accent: #f5c518;
-	--color-marker: #f5c518;
+	--color-accent: #111111;
+	--color-marker: #111111;
 
 	/* Neighborhood filter pills */
 	--pill-green: #3f7d54;
@@ -129,7 +129,7 @@ a {
 	width: 13px;
 	height: 13px;
 	flex: none;
-	color: var(--color-accent);
+	color: var(--color-text);
 }
 
 .diary-popup .dp-link {
@@ -137,8 +137,8 @@ a {
 	margin: 8px 0 0;
 	font-size: 0.78rem;
 	font-weight: 600;
-	color: var(--color-accent);
-	text-decoration: none;
+	color: var(--color-text);
+	text-decoration: underline;
 }
 
 .diary-popup .dp-link:hover {
