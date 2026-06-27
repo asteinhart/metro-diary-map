@@ -1,0 +1,248 @@
+{
+    "glyphs": "https://tiles.stadiamaps.com/fonts/{fontstack}/{range}.pbf",
+    "sprite": "https://tiles.stadiamaps.com/styles/stamen-toner/sprite",
+    "name": "Stamen Watercolor (B&W)",
+    "version": 8,
+    "sources": {
+        "stamen_watercolor_v1": {
+            "type": "raster",
+            "attribution": "<a href=\"https://stadiamaps.com/\" target=\"_blank\">&copy; Stadia Maps</a> <a href=\"https://stamen.com/\" target=\"_blank\">&copy; Stamen Design</a> <a href=\"https://www.openstreetmap.org/about\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+            "maxzoom": 16,
+            "minzoom": 0,
+            "scheme": "xyz",
+            "tileSize": 256,
+            "url": "https://tiles.stadiamaps.com/data/stamen_watercolor_v1.json"
+        },
+        "stamen-omt": {
+            "type": "vector",
+            "scheme": "xyz",
+            "attribution": "<a href=\"https://stadiamaps.com/\" target=\"_blank\">&copy; Stadia Maps</a> <a href=\"https://stamen.com/\" target=\"_blank\">&copy; Stamen Design</a> <a href=\"https://www.openstreetmap.org/about\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+            "url": "https://tiles.stadiamaps.com/data/stamen-omt.json"
+        }
+    },
+    "layers": [
+        {
+            "id": "watercolor",
+            "type": "raster",
+            "source": "stamen_watercolor_v1",
+            "paint": {
+                "raster-saturation": -1,
+                "raster-contrast": 0.1,
+                "raster-brightness-min": 0.4
+            }
+        },
+        {
+            "id": "road-label",
+            "type": "symbol",
+            "source": "stamen-omt",
+            "source-layer": "transportation_name",
+            "minzoom": 10,
+            "filter": [
+                "all",
+                [
+                    "has",
+                    "name"
+                ],
+                [
+                    "step",
+                    [
+                        "zoom"
+                    ],
+                    [
+                        "match",
+                        [
+                            "get",
+                            "class"
+                        ],
+                        [
+                            "motorway",
+                            "trunk",
+                            "primary",
+                            "secondary",
+                            "tertiary"
+                        ],
+                        true,
+                        false
+                    ],
+                    12,
+                    [
+                        "match",
+                        [
+                            "get",
+                            "class"
+                        ],
+                        [
+                            "motorway",
+                            "trunk",
+                            "primary",
+                            "secondary",
+                            "tertiary",
+                            "minor",
+                            "street_limited"
+                        ],
+                        true,
+                        false
+                    ],
+                    15,
+                    [
+                        "match",
+                        [
+                            "get",
+                            "class"
+                        ],
+                        [
+                            "path",
+                            "pedestrian",
+                            "golf",
+                            "ferry",
+                            "aerialway",
+                            "track",
+                            "service"
+                        ],
+                        false,
+                        true
+                    ]
+                ]
+            ],
+            "layout": {
+                "symbol-placement": "line",
+                "text-field": [
+                    "case",
+                    [
+                        "has",
+                        "name:nonlatin"
+                    ],
+                    [
+                        "concat",
+                        [
+                            "get",
+                            "name:nonlatin"
+                        ],
+                        "(",
+                        [
+                            "get",
+                            "name:latin"
+                        ],
+                        ")"
+                    ],
+                    [
+                        "coalesce",
+                        [
+                            "get",
+                            "name:en"
+                        ],
+                        [
+                            "get",
+                            "name"
+                        ]
+                    ]
+                ],
+                "text-font": [
+                    "Inter Bold"
+                ],
+                "text-letter-spacing": 0.01,
+                "text-max-angle": 30,
+                "text-offset": [
+                    "step",
+                    [
+                        "zoom"
+                    ],
+                    [
+                        "literal",
+                        [
+                            0,
+                            -0.5
+                        ]
+                    ],
+                    15,
+                    [
+                        "literal",
+                        [
+                            0,
+                            -0.8
+                        ]
+                    ],
+                    17,
+                    [
+                        "literal",
+                        [
+                            0,
+                            0.2
+                        ]
+                    ]
+                ],
+                "text-padding": 1,
+                "text-pitch-alignment": "viewport",
+                "text-rotation-alignment": "map",
+                "text-size": [
+                    "interpolate",
+                    [
+                        "linear"
+                    ],
+                    [
+                        "zoom"
+                    ],
+                    10,
+                    [
+                        "match",
+                        [
+                            "get",
+                            "class"
+                        ],
+                        [
+                            "motorway",
+                            "trunk",
+                            "primary"
+                        ],
+                        10,
+                        [
+                            "motorway_link",
+                            "trunk_link",
+                            "primary_link",
+                            "secondary_link",
+                            "tertiary_link",
+                            "minor",
+                            "street_limited",
+                            "secondary",
+                            "tertiary"
+                        ],
+                        8,
+                        6.5
+                    ],
+                    18,
+                    [
+                        "match",
+                        [
+                            "get",
+                            "class"
+                        ],
+                        [
+                            "motorway",
+                            "trunk",
+                            "primary"
+                        ],
+                        16,
+                        [
+                            "motorway_link",
+                            "trunk_link",
+                            "primary_link",
+                            "secondary_link",
+                            "tertiary_link",
+                            "minor",
+                            "street_limited",
+                            "secondary",
+                            "tertiary"
+                        ],
+                        14,
+                        11
+                    ]
+                ]
+            },
+            "paint": {
+                "text-color": "hsl(0, 0%, 0%)",
+                "text-halo-color": "hsl(0, 0%, 100%)",
+                "text-halo-width": 2
+            }
+        }
+    ]
+}

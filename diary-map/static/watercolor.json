@@ -1,0 +1,23 @@
+{
+    "glyphs": "https://tiles.stadiamaps.com/fonts/{fontstack}/{range}.pbf",
+    "layers": [
+        {
+            "id": "watercolor",
+            "type": "raster",
+            "source": "stamen_watercolor_v1"
+        }
+    ],
+    "name": "Stamen Watercolor",
+    "sources": {
+        "stamen_watercolor_v1": {
+            "type": "raster",
+            "attribution": "<a href=\"https://stadiamaps.com/\" target=\"_blank\">&copy; Stadia Maps</a> <a href=\"https://stamen.com/\" target=\"_blank\">&copy; Stamen Design</a> <a href=\"https://www.openstreetmap.org/about\" target=\"_blank\">&copy; OpenStreetMap contributors</a>",
+            "maxzoom": 16,
+            "minzoom": 0,
+            "scheme": "xyz",
+            "tileSize": 256,
+            "url": "https://tiles.stadiamaps.com/data/stamen_watercolor_v1.json"
+        }
+    },
+    "version": 8
+}
