@@ -4,6 +4,11 @@
 	import maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import STYLE_URL from '../../static/watercolor-bw.json';
+	import IntroScreen from '$lib/components/IntroScreen.svelte';
+
+	// the collage intro overlays the map until the visitor clicks "Enter the map";
+	// the map still mounts underneath while it's up, so it's ready on hand-off
+	let showIntro = $state(true);
 
 	// --- SEO / social-share metadata --------------------------------------------
 	// og:image and twitter:image must be absolute URLs for scrapers to resolve them,
@@ -63,8 +68,25 @@
 
 	const EMPTY = { type: 'FeatureCollection', features: [] };
 
+	// dot styling shared between the layer paint and the click-to-select logic
+	const SELECTED = ['boolean', ['feature-state', 'selected'], false];
+	const DOT_OPACITY_IDLE = 0.92; // every dot equally visible when nothing is picked
+	const DOT_OPACITY_FOCUS = ['case', SELECTED, 1, 0.3]; // others fade so the pick pops
+	// clicking a dot eases to at least this zoom (only ever zooms in, never out)
+	const SELECT_ZOOM = 14;
+
 	let mapEl;
 	let map;
+	// mobile layout refs — the top header/filter bar and the bottom read-more bar,
+	// measured so the map can be sized to the gap between them; the sheet hosts the
+	// tapped entry as a bottom panel on small screens
+	let panelEl;
+	let footerEl;
+	let sheetEl;
+	let sheetOpen = $state(false);
+	let insetObserver;
+	let syncInsets;
+	const isMobile = () => window.matchMedia('(max-width: 640px)').matches;
 	let activeView = $state('all');
 	let loading = $state(true);
 	let count = $state(0);
@@ -109,6 +131,7 @@
 	let loadToken = 0;
 	async function showView(id) {
 		activeView = id;
+		dismissEntry(); // close any open entry; setData below clears its feature-state
 		loading = true;
 		const token = ++loadToken;
 		const view = VIEWS.find((v) => v.id === id);
@@ -166,30 +189,77 @@
 		yearInit = true;
 	}
 
-	// ---- hover popup (stays open while the cursor is over the popup, so the body
-	//      can be scrolled and the link clicked) -----------------------------------
+	// ---- popup: hover shows a transient preview; a click pins it open (centering
+	//      the dot so the popup has room) until dismissed with the close X --------
 	let currentId = null;
+	let pinned = false;
 	let closeTimer;
 
-	function buildPopupContent(props) {
-		const wrap = document.createElement('div');
-		wrap.className = 'diary-popup';
+	// NYC names/acronyms that should keep their exact casing rather than be title-cased
+	const TITLE_ACRONYMS = [
+		'MTA',
+		'NYC',
+		'NY',
+		'NJ',
+		'NYPD',
+		'FDNY',
+		'EMS',
+		'LIRR',
+		'JFK',
+		'LGA',
+		'NYU',
+		'CUNY',
+		'PATH',
+		'MoMA',
+		'SoHo',
+		'NoHo',
+		'NoMad',
+		'DUMBO',
+		'FiDi',
+		'TriBeCa'
+	];
+	const ACRONYM_MAP = Object.fromEntries(TITLE_ACRONYMS.map((a) => [a.toLowerCase(), a]));
+
+	// title case — lowercase first (so all-caps titles get normalized) then capitalize
+	// each word's leading letter; digit-led tokens (e.g. "5th") are left alone, and known
+	// NYC acronyms (incl. possessives like "MTA's") are restored to their exact casing
+	function toTitleCase(str) {
+		const titled = str
+			.toLowerCase()
+			.split(/(\s+)/)
+			.map((w) => (/^\d/.test(w) ? w : w.replace(/[a-z]/, (c) => c.toUpperCase())))
+			.join('');
+		return titled.replace(/[A-Za-z]+(?:'s)?/g, (word) => {
+			const base = word.replace(/'s$/, '');
+			const canon = ACRONYM_MAP[base.toLowerCase()];
+			return canon ? canon + word.slice(base.length) : word;
+		});
+	}
+
+	// header — title + the entry's facts (author · year · location); shared by the
+	// hover preview and the full pinned popup
+	function buildHeader(props) {
+		const header = document.createElement('div');
+		header.className = 'dp-header';
 
 		const title = document.createElement('h3');
 		title.className = 'dp-title';
-		title.textContent = props.title || 'Untitled diary';
-		wrap.appendChild(title);
+		title.textContent = toTitleCase(props.title || 'Untitled diary');
+		header.appendChild(title);
 
-		const meta = [props.author && `By ${props.author}`, props.pub_year].filter(Boolean).join(' · ');
-		if (meta) {
+		// author · year on one line
+		const metaText = [props.author && `By ${props.author}`, props.pub_year]
+			.filter(Boolean)
+			.join(' · ');
+		if (metaText) {
 			const p = document.createElement('p');
 			p.className = 'dp-meta';
-			p.textContent = meta;
-			wrap.appendChild(p);
+			p.textContent = metaText;
+			header.appendChild(p);
 		}
 
-		// where this dot was actually placed — the specific spot, subway line, or borough
-		// the entry resolved to, depending on the active view
+		// location on its own line below — where this dot was actually dropped (the
+		// specific spot, subway line, or borough it resolved to)
 		if (props.place_label) {
 			const place = document.createElement('p');
 			place.className = 'dp-place';
@@ -198,8 +268,48 @@
 			const label = document.createElement('span');
 			label.textContent = props.place_label;
 			place.appendChild(label);
-			wrap.appendChild(place);
+			header.appendChild(place);
 		}
+
+		return header;
+	}
+
+	function buildPopupContent(props, preview = false) {
+		const wrap = document.createElement('div');
+		wrap.className = 'diary-popup';
+
+		// both states render the full entry; they differ only in the corner affordance —
+		// hover gets a "click to read" prompt (and auto-closes), a pinned popup gets the X
+		if (preview) {
+			wrap.classList.add('dp-preview');
+			const hint = document.createElement('p');
+			hint.className = 'dp-hint';
+			hint.textContent = 'Click to read →';
+			wrap.appendChild(hint);
+		} else {
+			const close = document.createElement('button');
+			close.type = 'button';
+			close.className = 'dp-close';
+			close.setAttribute('aria-label', 'Close');
+			close.innerHTML =
+				'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>';
+			close.addEventListener('click', dismissEntry);
+			wrap.appendChild(close);
+		}
+
+		wrap.appendChild(buildHeader(props));
+
+		// hairline divider between the header and the story body
+		const rule = document.createElement('hr');
+		rule.className = 'dp-rule';
+		wrap.appendChild(rule);
+
+		const body = document.createElement('div');
+		body.className = 'dp-body';
+		body.textContent = bodies[props.entry_id] ?? 'Loading…';
+		// keep wheel events on the body from zooming the map underneath
+		body.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
+		wrap.appendChild(body);
 
 		if (props.web_url) {
 			const link = document.createElement('a');
@@ -208,40 +318,103 @@
 			link.target = '_blank';
 			link.rel = 'noopener noreferrer';
 			link.textContent = 'Read in the New York Times ›';
+			// let the link open NYT without the preview's click-to-pin also firing
+			link.addEventListener('click', (e) => e.stopPropagation());
 			wrap.appendChild(link);
 		}
-
-		const body = document.createElement('div');
-		body.className = 'dp-body';
-		body.textContent = bodies[props.entry_id] ?? 'Loading…';
-		// keep wheel events on the body from zooming the map underneath
-		body.addEventListener('wheel', (e) => e.stopPropagation(), { passive: true });
-
-		wrap.appendChild(body);
 
 		return wrap;
 	}
 
-	function openPopup(popup, feature) {
+	function openPopup(popup, feature, preview = false) {
 		cancelClose();
 		popup
 			.setLngLat(feature.geometry.coordinates)
-			.setDOMContent(buildPopupContent(feature.properties));
+			.setDOMContent(buildPopupContent(feature.properties, preview));
 		if (!popup.isOpen()) popup.addTo(map);
+		// let the cursor move onto the popup (to scroll/read/click) without it closing
 		const node = popup.getElement();
 		if (node && !node.dataset.hoverWired) {
 			node.dataset.hoverWired = '1';
 			node.addEventListener('mouseenter', cancelClose);
 			node.addEventListener('mouseleave', scheduleClose);
 		}
+		// clicking the hover preview opens the full entry, same as clicking the dot
+		if (node) node.onclick = preview ? () => pinFeature(feature) : null;
 	}
 
+	// highlight the clicked dot via feature-state and dim the rest so it pops
+	let selectedId = null;
+	function selectFeature(id) {
+		clearSelected();
+		selectedId = id;
+		map.setFeatureState({ source: 'diary-points', id }, { selected: true });
+		map.setPaintProperty('diary-points-dot', 'circle-opacity', DOT_OPACITY_FOCUS);
+	}
+
+	function clearSelected() {
+		if (selectedId != null && map.getSource('diary-points')) {
+			map.setFeatureState({ source: 'diary-points', id: selectedId }, { selected: false });
+		}
+		selectedId = null;
+		if (map?.getLayer('diary-points-dot')) {
+			map.setPaintProperty('diary-points-dot', 'circle-opacity', DOT_OPACITY_IDLE);
+		}
+	}
+
+	// pin a feature open. On desktop: a maplibre popup eased into the lower-right
+	// quadrant so it clears the top-left panel. On mobile: the entry slides up as a
+	// bottom sheet and the dot is centered in the map band above it. Either way the
+	// dot is highlighted and the map nudges in to SELECT_ZOOM.
+	function pinFeature(feature) {
+		pinned = true;
+		currentId = feature.properties.entry_id;
+		selectFeature(feature.id ?? feature.properties.entry_id);
+		if (isMobile()) {
+			openSheet(feature);
+			return;
+		}
+		openPopup(popup, feature, false);
+		const c = map.getContainer();
+		map.easeTo({
+			center: feature.geometry.coordinates,
+			zoom: Math.max(map.getZoom(), SELECT_ZOOM),
+			offset: [c.clientWidth * 0.2, c.clientHeight * 0.15],
+			duration: 500
+		});
+	}
+
+	// mobile: render the full entry into the bottom sheet, then center the dot
+	// horizontally and lift it into the visible band between the header and the sheet
+	function openSheet(feature) {
+		if (!sheetEl) return;
+		sheetEl.replaceChildren(buildPopupContent(feature.properties, false));
+		sheetOpen = true;
+		const headerH = panelEl?.offsetHeight ?? 0;
+		const sheetH = sheetEl.offsetHeight;
+		map.easeTo({
+			center: feature.geometry.coordinates,
+			zoom: Math.max(map.getZoom(), SELECT_ZOOM),
+			offset: [0, (headerH - sheetH) / 2],
+			duration: 500
+		});
+	}
+
+	// shared close: tear down whichever surface is showing the pinned entry
+	function dismissEntry() {
+		pinned = false;
+		currentId = null;
+		clearSelected();
+		popup?.remove();
+		sheetOpen = false;
+		if (sheetEl) sheetEl.replaceChildren();
+	}
+
+	// a pinned popup stays put; only an unpinned (hover) preview auto-closes
 	function scheduleClose() {
+		if (pinned) return;
 		clearTimeout(closeTimer);
-		closeTimer = setTimeout(() => {
-			popup?.remove();
-			currentId = null;
-		}, 220);
+		closeTimer = setTimeout(() => popup?.remove(), 220);
 	}
 
 	function cancelClose() {
@@ -273,6 +446,21 @@
 
 		map.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
 
+		// On mobile the header/filter bar and the read-more bar are fixed to the top and
+		// bottom; measure them so the map exactly fills the gap (survives title wrap).
+		syncInsets = () => {
+			if (!panelEl || !footerEl) return;
+			const shell = panelEl.parentElement;
+			shell.style.setProperty('--mobile-header-h', `${panelEl.offsetHeight}px`);
+			shell.style.setProperty('--mobile-footer-h', `${footerEl.offsetHeight}px`);
+			map?.resize();
+		};
+		insetObserver = new ResizeObserver(syncInsets);
+		insetObserver.observe(panelEl);
+		insetObserver.observe(footerEl);
+		window.addEventListener('resize', syncInsets);
+		requestAnimationFrame(syncInsets);
+
 		map.on('load', async () => {
 			// contextual basemap layer — loaded once, shown only for the subway view
 			const subwayLines = await fetch(`${base}/data/subway_lines.geojson`).then((r) => r.json());
@@ -290,8 +478,9 @@
 				}
 			});
 
-			// the diary points — white dots with a soft glow
-			map.addSource('diary-points', { type: 'geojson', data: EMPTY });
+			// the diary points — white dots with a soft glow. promoteId lifts entry_id to
+			// the feature id so we can drive a "selected" feature-state when a dot is clicked
+			map.addSource('diary-points', { type: 'geojson', data: EMPTY, promoteId: 'entry_id' });
 			// map.addLayer({
 			// 	id: 'diary-points-glow',
 			// 	type: 'circle',
@@ -308,11 +497,26 @@
 				type: 'circle',
 				source: 'diary-points',
 				paint: {
-					'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2.2, 13, 3.5, 16, 6],
-					'circle-color': '#000',
-					'circle-opacity': 0.92,
-					'circle-stroke-width': 0.75,
-					'circle-stroke-color': 'rgba(255, 255, 255, 0.55)'
+					// a selected dot grows, turns copper and gets a crisp white halo.
+					// only one zoom interpolate is allowed per expression, so the
+					// selected/idle split lives inside each zoom stop
+					'circle-radius': [
+						'interpolate',
+						['linear'],
+						['zoom'],
+						10,
+						['case', SELECTED, 4.5, 2.2],
+						13,
+						['case', SELECTED, 6.5, 3.5],
+						16,
+						['case', SELECTED, 10, 6]
+					],
+					'circle-color': ['case', SELECTED, '#000', '#000'],
+					// opacity is swapped at runtime: every dot full while idle; others fade
+					// back once a dot is selected so the chosen one pops
+					'circle-opacity': DOT_OPACITY_IDLE,
+					'circle-stroke-width': ['case', SELECTED, 2, 0.75],
+					'circle-stroke-color': ['case', SELECTED, '#ffffff', 'rgba(255, 255, 255, 0.55)']
 				}
 			});
 
@@ -327,19 +531,35 @@
 				maxWidth: '340px',
 				offset: 12
 			});
-			popup.on('close', () => (currentId = null));
+			popup.on('close', () => {
+				currentId = null;
+				pinned = false;
+			});
 
+			// hover shows a "Click to read" preview (unless a pinned popup already owns the
+			// screen). Touch devices skip the preview entirely — a tap pins straight away.
 			map.on('mousemove', 'diary-points-dot', (e) => {
 				map.getCanvas().style.cursor = 'pointer';
+				if (pinned || isMobile()) return;
 				cancelClose();
 				const f = e.features[0];
 				if (f.properties.entry_id === currentId) return;
 				currentId = f.properties.entry_id;
-				openPopup(popup, f);
+				openPopup(popup, f, true);
 			});
 			map.on('mouseleave', 'diary-points-dot', () => {
 				map.getCanvas().style.cursor = '';
 				scheduleClose();
+			});
+
+			// click a dot to pin the full entry open
+			map.on('click', 'diary-points-dot', (e) => pinFeature(e.features[0]));
+
+			// mobile: tapping the map away from a dot dismisses the open bottom sheet
+			map.on('click', (e) => {
+				if (!isMobile() || !pinned) return;
+				const hits = map.queryRenderedFeatures(e.point, { layers: ['diary-points-dot'] });
+				if (!hits.length) dismissEntry();
 			});
 
 			await showView(activeView);
@@ -348,6 +568,8 @@
 
 	onDestroy(() => {
 		clearTimeout(closeTimer);
+		insetObserver?.disconnect();
+		if (syncInsets) window.removeEventListener('resize', syncInsets);
 		map?.remove();
 	});
 </script>
@@ -378,14 +600,18 @@
 	<meta name="twitter:image:alt" content={SHARE_IMAGE_ALT} />
 </svelte:head>
 
-<div class="map-shell">
+{#if showIntro}
+	<IntroScreen onEnter={() => (showIntro = false)} />
+{/if}
+
+<div class="map-shell" class:hide-chrome={showIntro}>
 	<div class="map" bind:this={mapEl}></div>
 
-	<aside class="panel">
+	<aside class="panel" bind:this={panelEl}>
 		<header class="panel-header">
 			<h1>Stories of New York City, Mapped</h1>
 			<p class="subtitle">
-				As told by the New York Times' Metropolitan Diary column from 1976 to 2026.
+				As told by the New York Times' Metropolitan Diary column from 1976 to 2026
 			</p>
 			<p class="byline">By <a href="https://austinsteinhart.com"> Austin Steinhart</a></p>
 		</header>
@@ -443,7 +669,7 @@
 			</div>
 		</div>
 
-		<div class="read-more">
+		<div class="read-more" bind:this={footerEl}>
 			<a
 				href="https://austinsteinhart.com/metro-diary-map/about"
 				target="_blank"
@@ -473,6 +699,9 @@
 			</div>
 		{/if}
 	</aside>
+
+	<!-- mobile-only: the tapped entry slides up from the bottom of the screen -->
+	<div class="mobile-sheet" class:open={sheetOpen} bind:this={sheetEl}></div>
 </div>
 
 <style>
@@ -487,6 +716,19 @@
 		inset: 0;
 		width: 100%;
 		height: 100%;
+	}
+
+	/* while the intro overlay is up, keep the map's own UI out of sight so it
+	   doesn't show through the translucent collage; both fade in on hand-off */
+	.panel,
+	.map-shell :global(.maplibregl-ctrl) {
+		transition: opacity 0.4s ease;
+	}
+
+	.map-shell.hide-chrome .panel,
+	.map-shell.hide-chrome :global(.maplibregl-ctrl) {
+		opacity: 0;
+		pointer-events: none;
 	}
 
 	.panel {
@@ -690,7 +932,13 @@
 		font-size: 0.78rem;
 	}
 
-	/* ---- Mobile: title bar on top, view buttons pinned to the bottom ---- */
+	/* the bottom sheet is a mobile-only surface */
+	.mobile-sheet {
+		display: none;
+	}
+
+	/* ---- Mobile: header + filters on top, map in the middle, read-more footer below;
+	   a tapped entry rises as a bottom sheet ---- */
 	@media (max-width: 640px) {
 		.panel {
 			top: 0;
@@ -711,35 +959,82 @@
 		}
 
 		.panel-header h1 {
-			font-size: 1.15rem;
+			font-size: 1.3rem;
+			line-height: 1.15;
 		}
 
-		/* let the title flow across the full width instead of the desktop two-line break */
-		.title-break {
-			display: none;
+		.subtitle {
+			margin-top: 11px;
+			font-size: 0.74rem;
 		}
 
+		.byline {
+			margin-top: 8px;
+			font-size: 0.74rem;
+		}
 
-		/* sliders hidden on mobile for now */
+		/* filters sit beneath the title, with smaller buttons to save height */
+		.views {
+			margin-top: 16px;
+		}
+
+		.view {
+			padding: 5px 0;
+			font-size: 0.68rem;
+		}
+
+		/* the map exactly fills the gap between the top bar and the read-more footer */
+		.map {
+			inset: var(--mobile-header-h, 0) 0 var(--mobile-footer-h, 0) 0;
+			width: auto;
+			height: auto;
+		}
+
+		/* hidden on mobile: empty description, entry count, sliders */
+		.view-desc,
+		.view-count,
 		.year,
 		.debug {
 			display: none;
 		}
 
-		/* view buttons become a fixed bottom bar */
-		.views {
+		/* read-more becomes the slim footer bar pinned to the bottom */
+		.read-more {
 			position: fixed;
 			left: 0;
 			right: 0;
 			bottom: 0;
 			margin: 0;
-			padding: 10px 12px;
-			padding-bottom: calc(10px + env(safe-area-inset-bottom));
-			gap: 8px;
+			padding: 9px 12px;
+			padding-bottom: calc(9px + env(safe-area-inset-bottom));
+			text-align: center;
+			background: #ffffff;
+			border-top: 1px solid rgba(0, 0, 0, 0.2);
+			z-index: 5;
+		}
+
+		/* the tapped entry slides up over the footer as a bottom sheet */
+		.mobile-sheet {
+			display: block;
+			position: fixed;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 7;
 			background: #ffffff;
 			border-top: 1px solid rgba(0, 0, 0, 0.25);
-			box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
-			z-index: 6;
+			border-radius: 14px 14px 0 0;
+			box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+			padding: 16px;
+			padding-bottom: calc(16px + env(safe-area-inset-bottom));
+			max-height: 60vh;
+			overflow: hidden;
+			transform: translateY(110%);
+			transition: transform 0.3s ease;
+		}
+
+		.mobile-sheet.open {
+			transform: translateY(0);
 		}
 	}
 </style>

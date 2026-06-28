@@ -40,6 +40,10 @@ source/layer, plus a body lookup and two slimmed basemap layers:
     entries.json        {entry_id: body} -- the body text lives here, not in every feature,
                         so the geojson stays small; the map fetches it on click. Every body is
                         normalized to open "Dear Diary:" (added when the entry lacks it).
+    thumbnails.json     {entry_id: image_thumbnail_url} -- the NYT article thumbnail for each
+                        shown entry that has one (joined from the raw metadata on `uri`; one
+                        article's image is shared by its several diary entries). Omitted when
+                        the article carries no image.
     boroughs.geojson    basemap: the borough polygons, trimmed + rounded.
     subway_lines.geojson basemap: the subway lines, one feature per service, trimmed + rounded.
 
@@ -74,6 +78,9 @@ INPUT_DIR = DATA_DIR / "input"
 ENTRIES_PARQUET = OUT_DIR / "diary_entries.parquet"
 ENTITIES_PARQUET = OUT_DIR / "diary_entities.parquet"
 GEOCODE_PARQUET = OUT_DIR / "diary_geocoded.parquet"
+# raw NYT article metadata (one row per article) -- carries the article thumbnail, joined onto
+# entries by `uri` (a single article holds several diary entries, so they share its image).
+META_PARQUET = OUT_DIR / "metropolitan_diary.parquet"
 # NYC neighborhood polygons + admin levels (built by 6_neighborhoods.py) -- used to place a
 # neighborhood-only entry inside its polygon instead of scattering it across a whole borough.
 NEIGHBORHOODS_GEOJSON = OUT_DIR / "neighborhoods.geojson"
@@ -288,10 +295,16 @@ def load_neighborhoods() -> tuple[dict, dict]:
 
 
 def load_entries() -> list[dict]:
-    """Join entries + entities + geocoded into one row per entry, sorted by entry_id."""
+    """Join entries + entities + geocoded into one row per entry, sorted by entry_id.
+
+    Also pulls the article thumbnail (`image_thumbnail_url`) from the raw metadata, joined on
+    `uri` -- one article holds several entries, so they share its image; "" means no image.
+    """
     entries = pl.read_parquet(ENTRIES_PARQUET).select(
-        "entry_id", "title", "author", "pub_year", "web_url", "body"
+        "entry_id", "title", "author", "pub_year", "web_url", "body", "uri"
     )
+    thumbs = pl.read_parquet(META_PARQUET).select("uri", "image_thumbnail_url")
+    entries = entries.join(thumbs, on="uri", how="left")
     entities = pl.read_parquet(ENTITIES_PARQUET).select(
         "entry_id",
         "subway_mentioned",
@@ -777,12 +790,19 @@ def cmd_run(limit: int | None) -> None:
         for r in rows
         if r["entry_id"] in shown and r.get("body")
     }
+    # article thumbnails for the shown entries that have one (empty string == no image)
+    thumbnails = {
+        r["entry_id"]: r["image_thumbnail_url"]
+        for r in rows
+        if r["entry_id"] in shown and r.get("image_thumbnail_url")
+    }
 
     log("writing output ...")
     write_json(MAP_DIR / "locations.geojson", locations)
     write_json(MAP_DIR / "subway.geojson", subway)
     write_json(MAP_DIR / "areas.geojson", areas)
     write_json(MAP_DIR / "entries.json", bodies)
+    write_json(MAP_DIR / "thumbnails.json", thumbnails)
     write_json(MAP_DIR / "boroughs.geojson", build_basemap_boroughs())
     write_json(MAP_DIR / "subway_lines.geojson", build_basemap_subway())
 
@@ -814,6 +834,7 @@ def cmd_run(limit: int | None) -> None:
         print(f"    {tier:13}: {area_tiers.get(tier, 0)}")
     print(f"  skipped (neighborhood matched no polygon and no borough): {skipped}")
     print(f"entries.json       (bodies): {len(bodies)}")
+    print(f"thumbnails.json    (images): {len(thumbnails)}  (shown entries with an article image)")
     print(f"-> {MAP_DIR}")
 
 

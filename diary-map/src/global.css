@@ -69,31 +69,33 @@ a {
    (which the bundle loads after this file).
 --------------------------------------------------------------------------- */
 .maplibregl-popup .maplibregl-popup-content {
-	background: var(--color-panel);
-	color: var(--color-text);
-	border: 1px solid var(--color-panel-border);
+	position: relative;
+	background: #ffffff;
+	color: #111111;
+	/* slight black stroke — lighter than the filter nav's rgba(0,0,0,0.5) border */
+	border: 1px solid rgba(0, 0, 0, 0.22);
 	border-radius: 6px;
 	padding: 12px 14px;
-	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 	font-family: var(--font-sans);
 }
 
-/* tint the little pointer triangle to match the panel */
+/* tint the little pointer triangle to match the white popup */
 .maplibregl-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip,
 .maplibregl-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
 .maplibregl-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
-	border-bottom-color: var(--color-panel);
+	border-bottom-color: #ffffff;
 }
 .maplibregl-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
 .maplibregl-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
 .maplibregl-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
-	border-top-color: var(--color-panel);
+	border-top-color: #ffffff;
 }
 .maplibregl-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip {
-	border-right-color: var(--color-panel);
+	border-right-color: #ffffff;
 }
 .maplibregl-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
-	border-left-color: var(--color-panel);
+	border-left-color: #ffffff;
 }
 
 .diary-popup {
@@ -101,64 +103,145 @@ a {
 	max-width: 100%;
 }
 
+/* inside the mobile bottom sheet the entry fills the width and the close X tucks
+   into the top-right corner rather than straddling a popup edge */
+.mobile-sheet .diary-popup {
+	position: relative;
+	width: 100%;
+}
+
+.mobile-sheet .dp-close {
+	top: 0;
+	right: 0;
+	transform: none;
+}
+
+.mobile-sheet .dp-body {
+	max-height: 42vh;
+}
+
+/* hover preview — the full entry, clickable to pin open */
+.diary-popup.dp-preview {
+	cursor: pointer;
+}
+
+/* "click to read" eyebrow above the title, shown only while hovering */
+.diary-popup .dp-hint {
+	margin: 0 0 8px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	color: #555555;
+}
+
+/* close X — centered on the popup's top-right corner (straddling it) */
+.diary-popup .dp-close {
+	position: absolute;
+	top: 0;
+	right: 0;
+	transform: translate(50%, -50%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 1px solid rgba(0, 0, 0, 0.22);
+	border-radius: 50%;
+	background: #ffffff;
+	color: #555555;
+	cursor: pointer;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+	transition:
+		color 0.12s ease,
+		background 0.12s ease;
+}
+
+.diary-popup .dp-close:hover {
+	color: #111111;
+	background: #f0f0f0;
+}
+
+.diary-popup .dp-close svg {
+	width: 15px;
+	height: 15px;
+}
+
+/* header — title + facts, kept clear of the close X */
+.diary-popup .dp-header {
+	padding-right: 18px;
+}
+
 .diary-popup .dp-title {
 	font-family: var(--font-serif);
 	font-size: 1rem;
-	line-height: 1.2;
+	line-height: 1.25;
 	font-weight: 700;
-	color: var(--color-text);
+	color: #111111;
 }
 
+/* author · year on one muted line */
 .diary-popup .dp-meta {
 	margin: 4px 0 0;
-	font-size: 0.76rem;
-	color: var(--color-text-muted);
+	font-size: 0.75rem;
+	line-height: 1.35;
+	color: #777777;
 }
 
+/* location on its own line, darker than the author/year so it stands out */
 .diary-popup .dp-place {
 	display: flex;
 	align-items: center;
-	gap: 5px;
-	margin: 6px 0 0;
+	gap: 4px;
+	margin: 3px 0 0;
 	font-size: 0.78rem;
-	color: var(--color-text);
+	color: #111111;
 }
 
 .diary-popup .dp-place svg {
-	width: 13px;
-	height: 13px;
+	width: 12px;
+	height: 12px;
 	flex: none;
-	color: var(--color-text);
 }
 
-.diary-popup .dp-link {
-	display: inline-block;
-	margin: 8px 0 0;
-	font-size: 0.78rem;
-	color: var(--color-text-muted);
-	text-decoration: underline;
-}
-
-.diary-popup .dp-link:hover {
-	text-decoration: underline;
+/* subtle hairline dividing the header from the story */
+.diary-popup .dp-rule {
+	height: 0;
+	margin: 11px 0;
+	border: 0;
+	border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .diary-popup .dp-body {
-	margin-top: 10px;
 	max-height: 200px;
 	overflow-y: auto;
 	white-space: pre-wrap;
 	font-family: var(--font-serif);
 	font-size: 0.85rem;
 	line-height: 1.5;
-	color: var(--color-text);
+	color: #111111;
 	padding-right: 6px;
+}
+
+/* read-more link as a quiet footer action */
+.diary-popup .dp-link {
+	display: inline-block;
+	margin: 11px 0 0;
+	font-size: 0.76rem;
+	color: #3a3a3a;
+	text-decoration: underline;
+}
+
+.diary-popup .dp-link:hover {
+	color: #111111;
+	text-decoration: underline;
 }
 
 .diary-popup .dp-body::-webkit-scrollbar {
 	width: 7px;
 }
 .diary-popup .dp-body::-webkit-scrollbar-thumb {
-	background: var(--color-panel-border);
+	background: rgba(0, 0, 0, 0.25);
 	border-radius: 4px;
 }
