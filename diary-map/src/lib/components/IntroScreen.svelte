@@ -2,9 +2,10 @@
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 
-	// onEnter fires once the leave animation has played out — the parent
-	// uses it to unmount this overlay and reveal the map underneath.
-	let { onEnter } = $props();
+	// onLeaveStart fires the instant the visitor clicks, so the parent can begin
+	// cross-fading the map chrome in; onEnter fires once the fade-out has played,
+	// so the parent can unmount this overlay.
+	let { onEnter, onLeaveStart } = $props();
 
 	// the same copy the nav panel carries, so the intro and the map agree
 	const TITLE = 'Stories of New York City, Mapped';
@@ -81,8 +82,10 @@
 	function enter() {
 		if (leaving) return;
 		leaving = true;
-		// let the overlay fade out before handing the screen to the map
-		setTimeout(() => onEnter?.(), 950);
+		// fade the map chrome in as the overlay fades out (a cross-dissolve), then
+		// unmount the overlay once it's gone
+		onLeaveStart?.();
+		setTimeout(() => onEnter?.(), 400);
 	}
 </script>
 
@@ -130,7 +133,7 @@
 		-webkit-backdrop-filter: blur(2px);
 		opacity: 1;
 		cursor: pointer;
-		transition: opacity 0.9s ease;
+		transition: opacity 0.4s ease;
 	}
 
 	/* the click-to-enter fade: everything dissolves to reveal the map */

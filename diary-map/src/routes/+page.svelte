@@ -9,6 +9,9 @@
 	// the collage intro overlays the map until the visitor clicks "Enter the map";
 	// the map still mounts underneath while it's up, so it's ready on hand-off
 	let showIntro = $state(true);
+	// the chrome (panel, footer, nav) stays hidden under the intro and cross-fades
+	// in the instant the visitor clicks — concurrently with the intro dissolving
+	let chromeRevealed = $state(false);
 
 	// --- SEO / social-share metadata --------------------------------------------
 	// og:image and twitter:image must be absolute URLs for scrapers to resolve them,
@@ -390,12 +393,22 @@
 		if (!sheetEl) return;
 		sheetEl.replaceChildren(buildPopupContent(feature.properties, false));
 		sheetOpen = true;
+		const screenH = window.innerHeight;
 		const headerH = panelEl?.offsetHeight ?? 0;
+		const footerH = footerEl?.offsetHeight ?? 0;
 		const sheetH = sheetEl.offsetHeight;
+		// the strip of map still visible above the sheet (header bottom → sheet top)
+		const bandTop = headerH;
+		const bandBottom = screenH - sheetH;
+		// drop the dot a little above the middle of that strip so the sheet never covers it
+		const targetY = bandTop + (bandBottom - bandTop) * 0.42;
+		// the map container is that strip between the fixed header and footer, so the
+		// easeTo offset is measured from its on-screen vertical center
+		const containerCenterY = headerH + (screenH - headerH - footerH) / 2;
 		map.easeTo({
 			center: feature.geometry.coordinates,
 			zoom: Math.max(map.getZoom(), SELECT_ZOOM),
-			offset: [0, (headerH - sheetH) / 2],
+			offset: [0, targetY - containerCenterY],
 			duration: 500
 		});
 	}
@@ -601,10 +614,10 @@
 </svelte:head>
 
 {#if showIntro}
-	<IntroScreen onEnter={() => (showIntro = false)} />
+	<IntroScreen onLeaveStart={() => (chromeRevealed = true)} onEnter={() => (showIntro = false)} />
 {/if}
 
-<div class="map-shell" class:hide-chrome={showIntro}>
+<div class="map-shell" class:hide-chrome={!chromeRevealed}>
 	<div class="map" bind:this={mapEl}></div>
 
 	<aside class="panel" bind:this={panelEl}>
@@ -718,8 +731,9 @@
 		height: 100%;
 	}
 
-	/* while the intro overlay is up, keep the map's own UI out of sight so it
-	   doesn't show through the translucent collage; both fade in on hand-off */
+	/* the chrome (white panel + its contents, footer, nav) is hidden under the intro,
+	   then cross-fades in as a single unit while the intro dissolves — so the whole
+	   box fades in together rather than popping in blank */
 	.panel,
 	.map-shell :global(.maplibregl-ctrl) {
 		transition: opacity 0.4s ease;
@@ -1013,9 +1027,11 @@
 			z-index: 5;
 		}
 
-		/* the tapped entry slides up over the footer as a bottom sheet */
+		/* the tapped entry slides up over the footer as a bottom sheet — a flex column
+		   so the header/link stay put and only the story body scrolls within it */
 		.mobile-sheet {
-			display: block;
+			display: flex;
+			flex-direction: column;
 			position: fixed;
 			left: 0;
 			right: 0;
@@ -1027,7 +1043,7 @@
 			box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
 			padding: 16px;
 			padding-bottom: calc(16px + env(safe-area-inset-bottom));
-			max-height: 60vh;
+			max-height: 40vh;
 			overflow: hidden;
 			transform: translateY(110%);
 			transition: transform 0.3s ease;
