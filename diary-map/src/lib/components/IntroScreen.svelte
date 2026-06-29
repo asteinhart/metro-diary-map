@@ -186,7 +186,7 @@
 	}
 
 	.title-box h1 {
-		font-size: 1.7rem;
+		font-size: 1.9rem;
 		line-height: 1.15;
 		font-weight: 700;
 		letter-spacing: -0.01em;
@@ -232,7 +232,7 @@
 			padding: 22px 20px;
 		}
 		.title-box h1 {
-			font-size: 1.35rem;
+			font-size: 1.5rem;
 		}
 	}
 

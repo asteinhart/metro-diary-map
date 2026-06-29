@@ -114,8 +114,8 @@
 		loading
 			? 'Loading…'
 			: count >= grandTotal
-				? `${grandTotal.toLocaleString()} entries`
-				: `${count.toLocaleString()} of ${grandTotal.toLocaleString()} entries`
+				? `${grandTotal.toLocaleString()} diaries`
+				: `${count.toLocaleString()} of ${grandTotal.toLocaleString()} diaries`
 	);
 
 	// cache loaded source files so toggling a view (or re-hovering) never re-fetches
@@ -600,7 +600,7 @@
 	<meta property="og:description" content={PAGE_DESC} />
 	<meta property="og:url" content={SITE_URL} />
 	<meta property="og:image" content={SHARE_IMAGE} />
-	<meta property="og:image:type" content="image/jpeg" />
+	<meta property="og:image:type" content="image/png" />
 	<meta property="og:image:width" content="869" />
 	<meta property="og:image:height" content="528" />
 	<meta property="og:image:alt" content={SHARE_IMAGE_ALT} />
@@ -761,7 +761,7 @@
 	}
 
 	.panel-header h1 {
-		font-size: 1.4rem;
+		font-size: 1.55rem;
 		line-height: 1.15;
 		font-weight: 700;
 		letter-spacing: -0.01em;
@@ -973,7 +973,7 @@
 		}
 
 		.panel-header h1 {
-			font-size: 1.3rem;
+			font-size: 1.45rem;
 			line-height: 1.15;
 		}
 
