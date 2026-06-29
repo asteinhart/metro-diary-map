@@ -117,7 +117,7 @@
 				>Austin Steinhart</a
 			>
 		</p>
-		<button class="enter" type="button" onclick={enter}> Enter the map → </button>
+		<button class="enter" type="button" onclick={enter}> Explore the map → </button>
 	</div>
 </div>
 

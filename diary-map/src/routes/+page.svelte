@@ -20,7 +20,7 @@
 	const PAGE_TITLE = 'Stories of New York City, Mapped';
 	const PAGE_DESC =
 		"An interactive map of the New York Times' Metropolitan Diary — reader stories of everyday life in New York City, placed where they happened, 1976–2026.";
-	const SHARE_IMAGE = `${SITE_URL}/thumbs.webp`;
+	const SHARE_IMAGE = `${SITE_URL}/preview.png`;
 	const SHARE_IMAGE_ALT = 'Charcoal sketch of New Yorkers waiting on a subway platform.';
 
 	// Manhattan-ish center
