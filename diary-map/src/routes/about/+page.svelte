@@ -52,7 +52,7 @@
 		</p>
 
 		<p class="disclaimer">
-			<em>Disclaimer: This project is not affiliated or endorsed by the New York Times</em>
+			<em>Disclaimer: This project is not affiliated or endorsed by the New York Times.</em>
 		</p>
 
 		<p>
@@ -68,8 +68,8 @@
 		<p>
 			I am a recent New Yorker, but the city has enamored me. Long before I started reading the
 			Metropolitan Diary, daily moments of humanity, both kindness and sourness, caught my attention
-			in the city. Each day, my friends and I exchange funny, tragic, and heartwarming stories of
-			people we either witness or experience in the streets.
+			in this city. Each day, my friends and I would exchange funny, tragic, and heartwarming stories of
+			people we witness or experience in the streets.
 		</p>
 
 		<p>
@@ -85,29 +85,28 @@
 
 		<p>
 			This was a project that brought some interesting challenges and is a process that I think has
-			lots of different applications.
+			lots of other applications.
 		</p>
 
 		<ol>
-			<li>Define a corpus of documents (Use NYT API to identify Metro Diary articles)</li>
+			<li>Define a corpus of documents (Used NYT API to identify Metro Diary articles)</li>
 			<li>
-				Extract and parse text from documents (Pull text from each article and separate out
+				Extract and parse text from documents (Pulled text from each article and separated out
 				individual diary entries)
 			</li>
 			<li>
-				Use a local open weight LLM model (Determine primary location mentioned in each diary)
+				Use a local open weight LLM model (Determined primary location mentioned in each diary)
 			</li>
 			<li>
-				Geocode aforementioned locations (Geocode named locations, neighborhood, and subway lines)
+				Geocode aforementioned locations (Geocoded named locations, neighborhood, and subway lines)
 			</li>
 			<li>Place these locations on a map</li>
 		</ol>
 
 		<p class="disclaimer">
 			<em
-				>Disclaimer: This was a project to bring an idea to life and this should be thought of as
-				more of a concept and exploration than high-quality data pipeline. While I learned a lot
-				from this project, if I were to do it again, I would probably trash most of the code.</em
+				>Disclaimer: This was a project to bring an idea to life and thus should be thought of as
+				more of a concept and exploration than a high-quality data pipeline. Almost all of the code was written by an LLM, with my guidance. While I learned a lot from this project, if I were to do it again, I would probably trash most of the code.</em
 			>
 		</p>
 
@@ -118,7 +117,7 @@
 			<a href="https://developer.nytimes.com/apis" target="_blank" rel="noopener noreferrer"
 				>great API</a
 			>
-			that gives you great metadata on every article they have ever published. However, the Metropolitan
+			that gives you detailed metadata on every article they have ever published. However, the Metropolitan
 			Diary has moved around locations in the paper over the years, so after a bit of exploration, I used
 			a combination of what the NYT calls the "kicker" for newer articles (which is the keyword or category
 			for the article, such as Opinion or Modern Love) and searching the headline for older articles.
@@ -143,7 +142,7 @@
 		<p>
 			For legal reasons, let's say I, a NYT subscriber, "copied and pasted" the text from each of
 			these articles. I then had to parse out each individual diary for most of the articles that
-			contained multiple. Recent years were well structured with titles in h2 tags and authors were
+			contained multiple. Recent years were well structured and easy to parse with titles in h2 tags and authors
 			followed by a hyphen and italicized. Earlier years are much messier, with some diaries not
 			even having titles. There was only so much that could be done here, and I wasn't striving for
 			perfection, so the map contains missing titles and authors.
@@ -162,16 +161,14 @@
 			<em>main</em> location. This felt like prime LLM territory. Although a small, cheap model like Haiku
 			probably could have burned through this small list for a few dollars very quickly, this presented
 			a good excuse to try out an open weight model running on my laptop (and I didn't want to give Anthropic
-			any of my money). After some research using whichllm and a few blogs, I used LMStudio and downloaded
-			QWEN 9.5B (which was only about 6.5GB). I then used a small Python script to connect to LMStudio
+			any of my money). After some research using <a href="https://github.com/Andyyyy64/whichllm" target="_blank" rel="noopener noreferrer">whichllm</a> and a few blogs, I used <a href="https://lmstudio.ai/" target="_blank" rel="noopener noreferrer">LM Studio</a> and downloaded
+			QWEN 9.5B (which was only about 6GB). I then used a small Python script to connect to LM Studio
 			and repeatedly send a prompt and each diary text, and have it return structured output. To be complete,
 			I had it return whether any specific location, subway line, neighborhood, and borough was mentioned.
 		</p>
 
 		<p>
-			This worked alright but is definitely an area of the project that could be improved. I was
-			able to identify a location, neighborhood, subway, or borough in about 69% (7,213) of diaries
-			but the quality varies. If you want to do this with a more exact methodology, I would highly
+			This worked alright but was incredibly slow. I had a few workers going and it still took ~16 hours for the 10k entries on my MacBook with an M1 Pro chip and 16GB RAM. This is definitely an area of the project that could be improved. I was able to identify a location, neighborhood, subway, or borough in about 69% (7,213) of diaries but the quality varies. If you want to do this with a more exact methodology, I would highly
 			recommend Ben Welsh's
 			<a
 				href="https://palewi.re/docs/first-llm-classifier/index.html"
@@ -183,7 +180,7 @@
 		<h2>4. Geocode the locations</h2>
 
 		<p>
-			For specific locations I used a few different free services to try to get a location including
+			For specific locations, I used a few different free services to try to get a latitude and longitude including
 			<a href="https://nominatim.org/" target="_blank" rel="noopener noreferrer">Nominatim</a> from
 			Open Street Maps,
 			<a href="https://geoservice.planning.nyc.gov" target="_blank" rel="noopener noreferrer"
@@ -196,7 +193,7 @@
 		</p>
 
 		<p>
-			For diaries that mention subway lines, I pulled the shapefile of subway lines from NYC Open
+			For diaries that mention subway lines, I pulled the spatial data of subway lines from NYC Open
 			Data and randomly placed each diary somewhere along the subway line mentioned.
 		</p>
 
@@ -208,8 +205,7 @@
 				rel="noopener noreferrer">popular Reddit post</a
 			>, as an official map doesn't exist from the city and the Reddit map mostly aligns with my
 			understanding of each NYC neighborhood. I then simply randomly placed any diary entry that
-			mentioned a neighborhood or borough inside that area with as much specificity as I was able
-			to. Between specific locations, placing dots on subways and on neighborhoods, I ended up with
+			mentioned a neighborhood or borough and not a specific location inside that area with as much specificity as I was able to. Between specific locations, placing dots on subways and in neighborhoods, I ended up with
 			6,533 diaries that I could map.
 		</p>
 
@@ -226,7 +222,7 @@
 			<a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer">Svelte</a> as a
 			frontend framework and
 			<a href="https://maplibre.org/" target="_blank" rel="noopener noreferrer">Maplibre</a>, an
-			open source JS mapping library.
+			open source JS mapping library. Its hosted for free with <a href="https://docs.github.com/en/pages" target="_blank" rel="noopener noreferrer">GitHub Pages</a>. 
 		</p>
 
 		<p>
